@@ -1,0 +1,21 @@
+# dependencias
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# build
+dist/
+build/
+
+# variables de entorno
+.env
+.env.test
+.env.production
+
+# logs
+logs
+*.log
+
+# SO
+.DS_Store
+Thumbs.db

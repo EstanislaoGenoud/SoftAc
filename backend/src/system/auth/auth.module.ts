@@ -1,0 +1,23 @@
+import { Module } from '@nestjs/common';
+import { AuthService } from './auth.service.js';
+import { AuthController } from './auth.controller.js';
+import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
+import { JwtStrategy } from './strategies/jwt.strategy.js';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Usuario } from '../users/entities/usuario.entity.js';
+import { Tenant } from '../users/entities/tenant.entity.js';
+
+@Module({
+  imports: [
+    TypeOrmModule.forFeature([Usuario, Tenant]),
+    PassportModule,
+    JwtModule.register({
+      secret: process.env.JWT_SECRET || 'super-secret-key-development',
+      signOptions: { expiresIn: '1d' }, // Expiración del token
+    }),
+  ],
+  providers: [AuthService, JwtStrategy],
+  controllers: [AuthController],
+})
+export class AuthModule {}
