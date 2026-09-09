@@ -1,7 +1,7 @@
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { TokenBlacklistService } from './token-blacklist.service.js';
+import { TokenBlacklistService } from '../token-blacklist.service.js';
 import { Request } from 'express';
 
 export type JwtPayload = { sub: string; email: string; tenantDbName: string };

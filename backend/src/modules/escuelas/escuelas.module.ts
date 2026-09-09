@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { EscuelasService } from './escuelas.service';
-import { EscuelasController } from './escuelas.controller';
+import { EscuelasService } from './escuelas.service.js';
+import { EscuelasController } from './escuelas.controller.js';
 
 @Module({
   controllers: [EscuelasController],

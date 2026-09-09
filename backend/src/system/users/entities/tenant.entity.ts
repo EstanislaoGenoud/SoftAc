@@ -1,4 +1,5 @@
 import { Entity, Column, PrimaryColumn, CreateDateColumn, OneToOne, JoinColumn } from 'typeorm';
+import type { Relation } from 'typeorm';
 import { Usuario } from './usuario.entity.js';
 
 @Entity('tenants')
@@ -9,7 +10,7 @@ export class Tenant {
   @Column({ default: 'CREADO' }) estado: string;
   @CreateDateColumn() created_at: Date;
 
-  @OneToOne(() => Usuario, usuario => usuario.tenant)
+  @OneToOne(() => Usuario, (usuario) => usuario.tenant)
   @JoinColumn({ name: 'usuario_id' })
-  usuario: Usuario;
+  usuario: Relation<Usuario>;
 }

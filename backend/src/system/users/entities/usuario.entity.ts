@@ -1,4 +1,5 @@
 import { Entity, Column, PrimaryColumn, CreateDateColumn, UpdateDateColumn, OneToOne } from 'typeorm';
+import type { Relation } from 'typeorm';
 import { Tenant } from './tenant.entity.js';
 
 @Entity('usuarios')
@@ -12,6 +13,6 @@ export class Usuario {
   @CreateDateColumn() created_at: Date;
   @UpdateDateColumn() updated_at: Date;
 
-  @OneToOne(() => Tenant, tenant => tenant.usuario)
-  tenant: Tenant;
+  @OneToOne(() => Tenant, (tenant) => tenant.usuario)
+  tenant: Relation<Tenant>;
 }
