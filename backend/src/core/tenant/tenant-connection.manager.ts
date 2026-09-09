@@ -1,35 +1,37 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { DataSource } from 'typeorm';
+import { DataSource, DataSourceOptions } from 'typeorm';
 import { tenantBaseConfig } from '../../config/database.config.js';
 
-@Injectable()
 export class TenantConnectionManager {
-  private readonly logger = new Logger(TenantConnectionManager.name);
-  private tenantDataSources: Map<string, DataSource> = new Map();
+  // 🧠 CACHÉ DE CONEXIONES
+  // Mantener una conexión a base de datos abierta consume mucha memoria. 
+  // Usamos este Mapa para "recordar" las conexiones. Si el profe Juan ya se conectó hoy,
+  // reutilizamos su conexión en lugar de crear una nueva, optimizando el servidor al máximo.
+  private static connections = new Map<string, DataSource>();
 
-  async getTenantConnection(tenantDbName: string): Promise<DataSource> {
-    if (this.tenantDataSources.has(tenantDbName)) {
-      const dataSource = this.tenantDataSources.get(tenantDbName);
-      if (dataSource?.isInitialized) {
-        return dataSource;
+  static async getTenantConnection(tenantDbName: string): Promise<DataSource> {
+    // 1. Verificamos si ya tenemos una conexión activa y conectada para este docente
+    if (this.connections.has(tenantDbName)) {
+      const connection = this.connections.get(tenantDbName);
+      if (connection && connection.isInitialized) {
+        return connection; // ¡Reutilizamos la conexión!
       }
     }
 
-    this.logger.log(`Inicializando nueva conexión para el tenant: ${tenantDbName}`);
-    
+    // 2. Si no existe, creamos una conexión nueva configurada exclusivamente hacia la BD de este profe
     const dataSource = new DataSource({
       ...tenantBaseConfig,
-      type: 'mysql', // Forzamos el discriminador para TypeScript
+      type: 'mysql', // Forzamos el discriminador para que TypeScript no se confunda
       database: tenantDbName,
     } as any);
 
     try {
       await dataSource.initialize();
-      this.tenantDataSources.set(tenantDbName, dataSource);
-      this.logger.log(`Conexión exitosa al tenant: ${tenantDbName}`);
+      // 3. La guardamos en nuestra memoria caché para la próxima vez
+      this.connections.set(tenantDbName, dataSource);
+      console.log(`🔌 Éxito: Conexión establecida con el tenant -> ${tenantDbName}`);
       return dataSource;
     } catch (error) {
-      this.logger.error(`Error al conectar con tenant ${tenantDbName}`, error);
+      console.error(`❌ Error fatal conectando al tenant ${tenantDbName}:`, error);
       throw error;
     }
   }

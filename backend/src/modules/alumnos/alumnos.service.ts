@@ -15,29 +15,35 @@ export class AlumnosService {
     this.inscripcionRepo = this.dataSource.getRepository(Inscripcion);
   }
 
-  // HU-07: Visualizar listado de alumnos (de una materia/curso específica)
+  // HU-07: Listar alumnos de una materia
   async findByCursoMateria(cursoMateriaId: string) {
+    // Buscamos todas las "inscripciones" activas para esta comisión (Curso + Materia)
     const inscripciones = await this.inscripcionRepo.find({
       where: { curso_materia_id: cursoMateriaId, estado: 'REGULAR' },
-      relations: ['alumno']
+      relations: ['alumno'] // El JOIN: Le decimos a SQL que también traiga los datos del alumno pegados a la inscripción
     });
-    // Retornamos directamente los alumnos extraídos de la inscripción
+    
+    // El frontend solo quiere la lista de alumnos, así que extraemos ".alumno" del array de inscripciones
+    // usando la función map de JavaScript y limpiamos la respuesta.
     return inscripciones.map(i => i.alumno);
   }
 
-  // HU-08: Buscar alumno por nombre o apellido
+  // HU-08: Buscador universal de alumnos
   async search(query: string) {
+    // Permite al profesor buscar un alumno tipeando "Juan" o "Perez" en un buscador global
     return this.alumnoRepo.find({
       where: [
-        { nombre: Like(`%${query}%`) },
+        { nombre: Like(`%${query}%`) }, // %juan% buscará cualquier nombre que contenga "juan"
         { apellido: Like(`%${query}%`) }
       ],
-      take: 10
+      take: 10 // Limitamos a 10 resultados para no sobrecargar el frontend si hay muchos "Juan"
     });
   }
 
-  // Helper para inscribir rápidamente a un alumno
+  // Inscribir a un alumno rápidamente
   async enroll(data: { nombre: string, apellido: string, identificacion?: string, cursoMateriaId: string }) {
+    
+    // 1. Damos de alta al alumno en el padrón global del colegio
     const alumno = this.alumnoRepo.create({
       id: uuidv4(),
       nombre: data.nombre,
@@ -46,6 +52,7 @@ export class AlumnosService {
     });
     await this.alumnoRepo.save(alumno);
 
+    // 2. Lo vinculamos (inscribimos) específicamente a esta comisión (CursoMateria)
     const inscripcion = this.inscripcionRepo.create({
       id: uuidv4(),
       alumno_id: alumno.id,

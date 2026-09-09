@@ -7,6 +7,7 @@ import { JwtStrategy } from './strategies/jwt.strategy.js';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Usuario } from '../users/entities/usuario.entity.js';
 import { Tenant } from '../users/entities/tenant.entity.js';
+import { TokenBlacklistService } from './token-blacklist.service.js';
 
 @Module({
   imports: [
@@ -14,10 +15,10 @@ import { Tenant } from '../users/entities/tenant.entity.js';
     PassportModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'super-secret-key-development',
-      signOptions: { expiresIn: '1d' }, // Expiración del token
+      signOptions: { expiresIn: '1d' },
     }),
   ],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, JwtStrategy, TokenBlacklistService],
   controllers: [AuthController],
 })
 export class AuthModule {}

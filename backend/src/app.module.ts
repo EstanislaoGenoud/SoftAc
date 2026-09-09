@@ -7,6 +7,9 @@ import { AuthModule } from './system/auth/auth.module.js';
 import { EscuelasModule } from './modules/escuelas/escuelas.module.js';
 import { CursosModule } from './modules/cursos/cursos.module.js';
 import { AlumnosModule } from './modules/alumnos/alumnos.module.js';
+import { HorariosModule } from './modules/horarios/horarios.module.js';
+import { ClasesModule } from './modules/clases/clases.module.js';
+import { AsistenciasModule } from './modules/asistencias/asistencias.module.js';
 import { Usuario } from './system/users/entities/usuario.entity.js';
 import { Tenant } from './system/users/entities/tenant.entity.js';
 
@@ -26,7 +29,10 @@ import { Tenant } from './system/users/entities/tenant.entity.js';
     AuthModule,
     EscuelasModule,
     CursosModule,
-    AlumnosModule
+    AlumnosModule,
+    HorariosModule,
+    ClasesModule,
+    AsistenciasModule
   ],
   controllers: [AppController],
   providers: [AppService],
