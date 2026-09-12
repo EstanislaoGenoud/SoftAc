@@ -1,0 +1,50 @@
+.course-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px;
+  margin-bottom: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow-soft);
+}
+
+.course-card:hover {
+  border-color: var(--accent-border);
+  box-shadow: var(--shadow);
+}
+
+.course-icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent-light);
+  border-radius: 12px;
+  color: var(--accent);
+  font-size: 24px;
+}
+
+.course-info {
+  flex: 1;
+}
+
+.course-info h2 {
+  margin: 0 0 4px;
+  font-size: 18px;
+  color: var(--text-h);
+}
+
+.course-info p {
+  margin: 3px 0;
+  color: var(--text);
+  font-size: 14px;
+}
+
+.course-card > span {
+  color: var(--accent);
+  font-size: 22px;
+  font-weight: 700;
+}

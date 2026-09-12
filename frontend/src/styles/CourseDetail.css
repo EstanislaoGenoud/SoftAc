@@ -1,0 +1,116 @@
+.course-detail-page {
+  min-height: 100vh;
+  width: min(100%, 960px);
+  margin: 0 auto;
+  padding: 24px 16px 56px;
+  box-sizing: border-box;
+  text-align: left;
+}
+
+.course-detail-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: var(--shadow-soft);
+  padding: 24px;
+}
+
+.course-detail-header {
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.course-detail-kicker {
+  display: inline-block;
+  margin-bottom: 10px;
+  color: var(--accent);
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.course-detail-header h1 {
+  margin: 0 0 14px;
+  color: var(--text-h);
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 700;
+}
+
+.course-detail-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 30px;
+  margin-top: 14px;
+  color: var(--text);
+}
+
+.course-detail-summary p {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.course-detail-summary .course-detail-students {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.course-detail-management {
+  margin-top: 28px;
+}
+
+.course-detail-management h2 {
+  margin: 0 0 16px;
+  color: var(--text-h);
+  font-size: clamp(1.5rem, 3vw, 2rem);
+}
+
+.course-management-options {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+.course-management-option {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text-h);
+  padding: 16px 14px;
+  cursor: pointer;
+  font: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: var(--shadow-soft);
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
+}
+
+.course-management-option:hover {
+  background: var(--accent-light);
+  border-color: var(--accent-border);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+
+.course-management-option span {
+  font-weight: 700;
+}
+
+@media (min-width: 601px) {
+  .course-detail-page {
+    width: min(100% - 48px, 960px);
+    padding: 56px 0 72px;
+  }
+
+  .course-detail-card {
+    padding: 32px;
+  }
+
+  .course-management-options {
+    grid-template-columns: repeat(3, minmax(150px, 1fr));
+  }
+}
