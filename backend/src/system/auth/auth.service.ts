@@ -32,10 +32,18 @@ export class AuthService {
     });
     await this.usuarioRepository.save(user);
 
+    // 1. Generamos un nombre único para la base de datos de este nuevo profe
+    // Reemplazamos los guiones del UUID porque MySQL no los permite en nombres de BD
+    const dbName = `tenant_${user.id.replace(/-/g, '_')}`;
+
+    // 2. Le ordenamos a MySQL que cree físicamente esta nueva base de datos vacía
+    await this.usuarioRepository.query(`CREATE DATABASE IF NOT EXISTS ${dbName}`);
+
+    // 3. Guardamos el registro que vincula a este usuario con su nueva BD
     const tenant = this.tenantRepository.create({
       id: uuidv4(),
       usuario_id: user.id,
-      db_name: 'tenant_demo_db',
+      db_name: dbName,
       estado: 'CREADO'
     });
     await this.tenantRepository.save(tenant);
