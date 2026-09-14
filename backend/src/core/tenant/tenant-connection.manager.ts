@@ -1,5 +1,6 @@
-import { DataSource, DataSourceOptions } from 'typeorm';
-import { tenantBaseConfig } from '../../config/database.config.js';
+import { DataSource } from 'typeorm';
+import * as dotenv from 'dotenv';
+dotenv.config();
 
 export class TenantConnectionManager {
   // 🧠 CACHÉ DE CONEXIONES
@@ -9,26 +10,34 @@ export class TenantConnectionManager {
   private static connections = new Map<string, DataSource>();
 
   static async getTenantConnection(tenantDbName: string): Promise<DataSource> {
-    // 1. Verificamos si ya tenemos una conexión activa y conectada para este docente
     if (this.connections.has(tenantDbName)) {
       const connection = this.connections.get(tenantDbName);
       if (connection && connection.isInitialized) {
-        return connection; // ¡Reutilizamos la conexión!
+        return connection; 
       }
     }
 
-    // 2. Si no existe, creamos una conexión nueva configurada exclusivamente hacia la BD de este profe
+    // Leemos las credenciales AHORA, para asegurarnos de que ConfigModule ya cargó el .env
     const dataSource = new DataSource({
-      ...tenantBaseConfig,
-      type: 'mysql', // Forzamos el discriminador para que TypeScript no se confunda
+      type: 'mysql',
+      host: process.env.DB_HOST || 'localhost',
+      port: parseInt(process.env.DB_PORT || '3306', 10),
+      username: process.env.DB_USERNAME || 'root',
+      password: process.env.DB_PASSWORD || '',
       database: tenantDbName,
+      entities: [import.meta.dirname + '/../../modules/**/*.entity{.ts,.js}'],
+      synchronize: true, // Auto-crear tablas en desarrollo
+      logging: true,
     } as any);
 
     try {
       await dataSource.initialize();
+      // En desarrollo, forzamos la sincronización de tablas para el tenant nuevo
+      await dataSource.synchronize();
+      
       // 3. La guardamos en nuestra memoria caché para la próxima vez
       this.connections.set(tenantDbName, dataSource);
-      console.log(`🔌 Éxito: Conexión establecida con el tenant -> ${tenantDbName}`);
+      console.log(`✅ Éxito: Conexión establecida con el tenant -> ${tenantDbName}`);
       return dataSource;
     } catch (error) {
       console.error(`❌ Error fatal conectando al tenant ${tenantDbName}:`, error);

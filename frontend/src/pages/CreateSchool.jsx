@@ -1,14 +1,16 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { createSchool } from "../services/schoolService";
 import "../styles/CreateSchool.css";
 
-function CreateSchool({ onCreateSchool }) {
+function CreateSchool() {
   const navigate = useNavigate();
 
   const [name, setName] = useState("");
   const [city, setCity] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
 
     if (!name.trim() || !city.trim()) {
@@ -16,19 +18,19 @@ function CreateSchool({ onCreateSchool }) {
       return;
     }
 
-   const newSchool = {
-    id: Date.now(),
-    name: name,
-    city: city,
-    courses: 0,
-    students: 0
-   };
-
-   onCreateSchool(newSchool);
-
-    alert("Escuela creada correctamente.");
-
-    navigate("/escuelas");
+    try {
+      setIsSubmitting(true);
+      // Conectamos con el backend de NestJS
+      // Nota: El DTO de NestJS espera 'nombre' y 'ciudad'
+      await createSchool({ nombre: name, ciudad: city });
+      
+      alert("Escuela creada correctamente.");
+      navigate("/escuelas");
+    } catch (error) {
+      alert("Error al guardar en el servidor: " + error.message);
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (

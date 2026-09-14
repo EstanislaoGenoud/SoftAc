@@ -15,9 +15,11 @@ import { TokenBlacklistService } from './token-blacklist.service.js';
   imports: [
     TypeOrmModule.forFeature([Usuario, Tenant]),
     PassportModule.register({ defaultStrategy: 'jwt' }),
-    JwtModule.register({
-      secret: process.env.JWT_SECRET || 'super-secret-key-development',
-      signOptions: { expiresIn: '1d' },
+    JwtModule.registerAsync({
+      useFactory: () => ({
+        secret: process.env.JWT_SECRET || 'super-secret-key-development',
+        signOptions: { expiresIn: '1d' },
+      }),
     }),
   ],
   providers: [AuthService, JwtStrategy, TokenBlacklistService, JwtAuthGuard],

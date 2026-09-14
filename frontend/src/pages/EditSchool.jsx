@@ -1,24 +1,39 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import schoolsData from "../data/schools";
+import { getSchoolById, updateSchool } from "../services/schoolService";
 import "../styles/EditSchool.css";
 
-function EditSchool({ onUpdateSchool }) {
+function EditSchool() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const school = schoolsData.find(
-    (school) => school.id === Number(id)
-  );
+  const [name, setName] = useState("");
+  const [city, setCity] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
-  const [name, setName] = useState(school ? school.name : "");
-  const [city, setCity] = useState(school ? school.city : "");
+  useEffect(() => {
+    async function fetchSchoolData() {
+      try {
+        const data = await getSchoolById(id);
+        setName(data.nombre || data.name || "");
+        setCity(data.ciudad || data.city || "");
+      } catch (err) {
+        console.error("Error al obtener escuela:", err);
+        setError(true);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchSchoolData();
+  }, [id]);
 
-  if (!school) {
+  if (loading) return <main><h1>Cargando escuela...</h1></main>;
+
+  if (error) {
     return (
       <main>
         <h1>Escuela no encontrada</h1>
-
         <button onClick={() => navigate("/escuelas")}>
           Volver a mis escuelas
         </button>
@@ -26,7 +41,7 @@ function EditSchool({ onUpdateSchool }) {
     );
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
 
     if (!name.trim() || !city.trim()) {
@@ -34,40 +49,26 @@ function EditSchool({ onUpdateSchool }) {
       return;
     }
 
-    const updatedSchool = {
-      ...school,
-      name: name,
-      city: city
-    };
-
-    onUpdateSchool(updatedSchool);
-
-    alert("Escuela actualizada correctamente.");
-
-    navigate("/escuelas");
+    try {
+      // Backend expects 'nombre' y 'ciudad'
+      await updateSchool(id, { nombre: name, ciudad: city });
+      alert("Escuela actualizada correctamente.");
+      navigate("/escuelas");
+    } catch (err) {
+      alert("Error al actualizar: " + err.message);
+    }
   }
 
   return (
     <main className="edit-school-page">
-
       <header className="edit-school-header">
         <h1>Editar escuela</h1>
-
-        <p>
-          Modificá los datos de la institución.
-        </p>
+        <p>Modificá los datos de la institución.</p>
       </header>
 
-      <form
-        className="edit-school-form"
-        onSubmit={handleSubmit}
-      >
-
+      <form className="edit-school-form" onSubmit={handleSubmit}>
         <div className="form-group">
-          <label htmlFor="name">
-            Nombre de la escuela
-          </label>
-
+          <label htmlFor="name">Nombre de la escuela</label>
           <input
             id="name"
             type="text"
@@ -77,10 +78,7 @@ function EditSchool({ onUpdateSchool }) {
         </div>
 
         <div className="form-group">
-          <label htmlFor="city">
-            Ciudad
-          </label>
-
+          <label htmlFor="city">Ciudad</label>
           <input
             id="city"
             type="text"
@@ -89,12 +87,8 @@ function EditSchool({ onUpdateSchool }) {
           />
         </div>
 
-        <button type="submit">
-          Guardar cambios
-        </button>
-
+        <button type="submit">Guardar cambios</button>
       </form>
-
     </main>
   );
 }

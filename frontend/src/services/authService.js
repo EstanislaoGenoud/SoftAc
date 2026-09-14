@@ -13,18 +13,28 @@ export async function login(email, password) {
     
     const data = await response.json();
     
-    // Guardamos el token real devuelto por NestJS
     localStorage.setItem("token", data.access_token);
-    // Mantenemos la bandera de Emma para no romper sus rutas
     localStorage.setItem("isLoggedIn", "true");
     
     return data;
 }
 
+export async function register(userData) {
+    const response = await fetch(`${API_URL}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userData)
+    });
+    
+    if (!response.ok) {
+        throw new Error('Error al registrarse');
+    }
+    return await response.json();
+}
+
 export async function logout() {
     const token = localStorage.getItem("token");
     if (token) {
-        // Llamamos al backend para meter el token en la Lista Negra
         await fetch(`${API_URL}/auth/logout`, {
             method: 'POST',
             headers: { 
@@ -38,10 +48,9 @@ export async function logout() {
 }
 
 export function isAuthenticated() {
-    return localStorage.getItem("isLoggedIn") === "true";
+    return localStorage.getItem("isLoggedIn") === "true" && localStorage.getItem("token") !== null;
 }
 
-// Conexión real con el backend para recuperar contraseña
 export async function forgotPassword(email) {
     const response = await fetch(`${API_URL}/auth/forgot-password`, {
         method: 'POST',

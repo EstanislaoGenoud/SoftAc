@@ -7,6 +7,11 @@ export class UpdateEscuelaDto {
   @MaxLength(100, { message: 'El nombre no puede exceder los 100 caracteres' })
   nombre?: string;
 
+  @IsString({ message: 'La ciudad debe ser un texto' })
+  @IsOptional()
+  @MaxLength(100, { message: 'La ciudad no puede exceder los 100 caracteres' })
+  ciudad?: string;
+
   @IsBoolean({ message: 'Activa debe ser verdadero o falso' })
   @IsOptional()
   activa?: boolean;

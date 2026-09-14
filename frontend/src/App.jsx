@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import schoolsData from "./data/schools";
 import EditSchool from "./pages/EditSchool";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -48,6 +48,9 @@ function App() {
     <BrowserRouter>
 
       <Routes>
+
+        {/* REDIRECCIÓN POR DEFECTO */}
+        <Route path="/" element={<Navigate to="/escuelas" replace />} />
 
         {/* RUTAS PÚBLICAS */}
 

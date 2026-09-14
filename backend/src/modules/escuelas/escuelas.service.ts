@@ -23,6 +23,7 @@ export class EscuelasService {
     const escuela = this.escuelaRepository.create({
       id: uuidv4(), // Le asignamos un ID único universal (Mejor que usar IDs auto-numéricos 1,2,3)
       nombre: createEscuelaDto.nombre,
+      ciudad: createEscuelaDto.ciudad,
     });
     // Lo guardamos definitivamente en la base de datos
     return this.escuelaRepository.save(escuela);
