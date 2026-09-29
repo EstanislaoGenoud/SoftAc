@@ -7,9 +7,9 @@ import { JwtAuthGuard } from '../../system/auth/guards/jwt-auth.guard.js';
 export class AlumnosController {
   constructor(private readonly alumnosService: AlumnosService) {}
 
-  @Get('curso-materia/:id')
-  findByCursoMateria(@Param('id') cursoMateriaId: string) {
-    return this.alumnosService.findByCursoMateria(cursoMateriaId);
+  @Get('curso/:id')
+  findByCurso(@Param('id') cursoId: string) {
+    return this.alumnosService.findByCurso(cursoId);
   }
 
   @Get('buscar')
@@ -20,5 +20,17 @@ export class AlumnosController {
   @Post('inscribir')
   enroll(@Body() body: Record<string, any>) {
     return this.alumnosService.enroll(body as any);
+  }
+
+  // HU-09: Endpoint de perfil (#140)
+  @Get(':id/perfil')
+  getProfile(@Param('id') id: string) {
+    return this.alumnosService.getProfile(id);
+  }
+
+  // HU-10: Endpoint de historial (#154)
+  @Get(':id/historial')
+  getHistorial(@Param('id') id: string) {
+    return this.alumnosService.getHistorial(id);
   }
 }

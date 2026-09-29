@@ -1,9 +1,11 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, NotFoundException } from '@nestjs/common';
 import { DataSource, Repository } from 'typeorm';
 import { TENANT_CONNECTION } from '../../core/tenant/tenant.provider.js';
 import { Curso } from './entities/curso.entity.js';
 import { Materia } from './entities/materia.entity.js';
 import { CursoMateria } from './entities/curso-materia.entity.js';
+import { Escuela } from '../escuelas/entities/escuela.entity.js';
+import { Inscripcion } from '../alumnos/entities/inscripcion.entity.js';
 import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
@@ -11,45 +13,77 @@ export class CursosService {
   private cursoRepo: Repository<Curso>;
   private materiaRepo: Repository<Materia>;
   private cursoMateriaRepo: Repository<CursoMateria>;
+  private escuelaRepo: Repository<Escuela>;
+  private inscripcionRepo: Repository<Inscripcion>;
 
   constructor(@Inject(TENANT_CONNECTION) private dataSource: DataSource) {
-    // Inicializamos 3 repositorios para poder manipular 3 tablas distintas en la misma función
     this.cursoRepo = this.dataSource.getRepository(Curso);
     this.materiaRepo = this.dataSource.getRepository(Materia);
     this.cursoMateriaRepo = this.dataSource.getRepository(CursoMateria);
+    this.escuelaRepo = this.dataSource.getRepository(Escuela);
+    this.inscripcionRepo = this.dataSource.getRepository(Inscripcion);
   }
 
   // HU-04: Listar cursos
   async findByEscuela(escuelaId: string) {
-    return this.cursoRepo.find({ where: { escuela_id: escuelaId } });
+    return this.cursoRepo.find({ 
+      where: { escuela_id: escuelaId },
+      relations: ['escuela'] // Trae los datos de la escuela asociada
+    });
+  }
+
+  // HU-06: Obtener detalle del curso (Escuela y Alumnos)
+  async findOne(id: string) {
+    const curso = await this.cursoRepo.findOne({
+      where: { id },
+      relations: ['escuela'] // HU-06 #99: Obtener escuela asociada
+    });
+
+    if (!curso) {
+      throw new NotFoundException('Curso no encontrado o no pertenece a tu entorno'); // HU-06 #104: Validar permisos
+    }
+
+    // HU-06 #101 / HU-45 #113: Obtener cantidad de alumnos a traves de Inscripcion
+    const cursoMaterias = await this.cursoMateriaRepo.find({ where: { curso_id: curso.id } });
+    const cursoMateriaIds = cursoMaterias.map(cm => cm.id);
+    
+    let cantidadAlumnos = 0;
+    if (cursoMateriaIds.length > 0) {
+      cantidadAlumnos = await this.inscripcionRepo
+        .createQueryBuilder('inscripcion')
+        .where('inscripcion.curso_materia_id IN (:...ids)', { ids: cursoMateriaIds })
+        .getCount();
+    }
+
+    return { ...curso, cantidad_alumnos: cantidadAlumnos };
   }
 
   // HU-05: Crear un curso y asociarle una materia
-  // Esta es una función "Combo". En vez de hacerle la vida difícil al Frontend obligándolo a hacer
-  // 3 peticiones distintas, armamos toda la relación lógica (Curso -> Materia -> Intersección) de un solo golpe.
   async createWithMateria(data: { escuelaId: string, nombreCurso: string, nombreMateria: string, periodoId: string }) {
     
-    // 1. Creamos el contenedor "Curso" (Ej: "4° A")
+    // HU-44 #109: Validar pertenencia de la escuela (seguridad)
+    const escuela = await this.escuelaRepo.findOne({ where: { id: data.escuelaId } });
+    if (!escuela) {
+      throw new NotFoundException('La escuela no existe en tu entorno de trabajo');
+    }
+
+    // 1. Creamos el contenedor "Curso"
     let curso = this.cursoRepo.create({ id: uuidv4(), escuela_id: data.escuelaId, nombre: data.nombreCurso });
     await this.cursoRepo.save(curso);
 
-    // 2. Buscamos si la "Materia" (Ej: "Matemática") ya existe en el catálogo del profesor.
-    // Así evitamos tener 5 materias "Matemática" repetidas en la base de datos.
+    // 2. Buscamos o creamos la "Materia"
     let materia = await this.materiaRepo.findOne({ where: { nombre: data.nombreMateria } });
-    
     if (!materia) {
-      // Si no existe, la creamos desde cero.
       materia = this.materiaRepo.create({ id: uuidv4(), nombre: data.nombreMateria });
       await this.materiaRepo.save(materia);
     }
 
-    // 3. Creamos el eslabón de oro: "CursoMateria". 
-    // Es la entidad intermedia que dice: "El curso 4°A dicta Matemática durante el Ciclo Lectivo 2024".
+    // 3. Creamos el eslabon "CursoMateria"
     const cursoMateria = this.cursoMateriaRepo.create({
       id: uuidv4(),
       curso_id: curso.id,
       materia_id: materia.id,
-      periodo_lectivo_id: data.periodoId
+      periodo_lectivo_id: data.periodoId || 'default-period'
     });
     await this.cursoMateriaRepo.save(cursoMateria);
 

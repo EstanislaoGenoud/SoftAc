@@ -8,8 +8,10 @@ import Login from "./pages/login";
 import Schools from "./pages/schools";
 import SchoolDashboard from "./pages/SchoolDashboard";
 import Courses from "./pages/Courses";
+import CreateCourse from "./pages/CreateCourse";
 import CourseDetail from "./pages/CourseDetail";
 import Students from "./pages/Students";
+import StudentProfile from "./pages/StudentProfile";
 import Attendance from "./pages/Attendance";
 import CreateSchool from "./pages/CreateSchool";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -93,6 +95,11 @@ function App() {
         }
         />
 
+        <Route path="/escuelas/:id/cursos/nuevo" element={<ProtectedRoute> <CreateCourse />
+        </ProtectedRoute>
+        }
+        />
+
         <Route path="/escuelas/:id/cursos/:courseId" element={<ProtectedRoute>
           <CourseDetail />
         </ProtectedRoute>
@@ -101,6 +108,12 @@ function App() {
 
         <Route path="/escuelas/:id/cursos/:courseId/alumnos" element={<ProtectedRoute>
           <Students />
+        </ProtectedRoute>
+        }
+        />
+
+        <Route path="/escuelas/:id/cursos/:courseId/alumnos/:studentId" element={<ProtectedRoute>
+          <StudentProfile />
         </ProtectedRoute>
         }
         />
