@@ -5,6 +5,7 @@ import { Curso } from './entities/curso.entity.js';
 import { Materia } from './entities/materia.entity.js';
 import { CursoMateria } from './entities/curso-materia.entity.js';
 import { Escuela } from '../escuelas/entities/escuela.entity.js';
+import { PeriodoLectivo } from '../escuelas/entities/periodo-lectivo.entity.js';
 import { Inscripcion } from '../alumnos/entities/inscripcion.entity.js';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -14,6 +15,7 @@ export class CursosService {
   private materiaRepo: Repository<Materia>;
   private cursoMateriaRepo: Repository<CursoMateria>;
   private escuelaRepo: Repository<Escuela>;
+  private periodoRepo: Repository<PeriodoLectivo>;
   private inscripcionRepo: Repository<Inscripcion>;
 
   constructor(@Inject(TENANT_CONNECTION) private dataSource: DataSource) {
@@ -21,6 +23,7 @@ export class CursosService {
     this.materiaRepo = this.dataSource.getRepository(Materia);
     this.cursoMateriaRepo = this.dataSource.getRepository(CursoMateria);
     this.escuelaRepo = this.dataSource.getRepository(Escuela);
+    this.periodoRepo = this.dataSource.getRepository(PeriodoLectivo);
     this.inscripcionRepo = this.dataSource.getRepository(Inscripcion);
   }
 
@@ -78,12 +81,30 @@ export class CursosService {
       await this.materiaRepo.save(materia);
     }
 
+    // Solución al 500 FK Constraint: Asegurarnos de tener un periodo_lectivo real
+    let periodoId = data.periodoId;
+    if (!periodoId) {
+      let periodo = await this.periodoRepo.findOne({ where: { escuela_id: escuela.id, actual: true } });
+      if (!periodo) {
+        periodo = this.periodoRepo.create({
+          id: uuidv4(),
+          escuela_id: escuela.id,
+          nombre: 'Ciclo 2026',
+          fecha_inicio: '2026-03-01',
+          fecha_fin: '2026-12-15',
+          actual: true
+        });
+        await this.periodoRepo.save(periodo);
+      }
+      periodoId = periodo.id;
+    }
+
     // 3. Creamos el eslabon "CursoMateria"
     const cursoMateria = this.cursoMateriaRepo.create({
       id: uuidv4(),
       curso_id: curso.id,
       materia_id: materia.id,
-      periodo_lectivo_id: data.periodoId || 'default-period'
+      periodo_lectivo_id: periodoId
     });
     await this.cursoMateriaRepo.save(cursoMateria);
 
