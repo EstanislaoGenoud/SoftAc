@@ -82,7 +82,14 @@ export class CursosService {
     }
 
     // Solución al 500 FK Constraint: Asegurarnos de tener un periodo_lectivo real
-    let periodoId = data.periodoId;
+    let periodoId: string | undefined = data.periodoId;
+    if (periodoId) {
+      const existePeriodo = await this.periodoRepo.findOne({ where: { id: periodoId } });
+      if (!existePeriodo) {
+        periodoId = undefined;
+      }
+    }
+
     if (!periodoId) {
       let periodo = await this.periodoRepo.findOne({ where: { escuela_id: escuela.id, actual: true } });
       if (!periodo) {
