@@ -1,0 +1,59 @@
+.create-school-page {
+  min-height: 100vh;
+  padding: 24px 20px;
+  background: #f4f6f8;
+  box-sizing: border-box;
+}
+
+.create-school-header {
+  margin-bottom: 28px;
+}
+
+.create-school-header h1 {
+  margin: 0 0 8px;
+  font-size: 28px;
+}
+
+.create-school-header p {
+  margin: 0;
+  color: #6b7280;
+}
+
+.create-school-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  background: white;
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.form-group label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.form-group input {
+  padding: 13px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+
+.create-school-form button {
+  padding: 14px;
+  border: none;
+  border-radius: 12px;
+  background: #111827;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+}
