@@ -82,9 +82,9 @@
   cursor: pointer;
   font: inherit;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
   box-shadow: var(--shadow-soft);
   transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
 }
@@ -98,6 +98,41 @@
 
 .course-management-option span {
   font-weight: 700;
+}
+
+.course-management-option small {
+  display: block;
+  color: var(--text);
+  font-size: 0.8rem;
+  font-weight: 400;
+}
+
+.course-management-option:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.course-management-option:disabled:hover {
+  transform: none;
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+.course-detail-info {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 4px 12px;
+  margin: 14px 0 0;
+}
+
+.course-detail-info dt {
+  font-weight: 700;
+  color: var(--text-h);
+}
+
+.course-detail-info dd {
+  margin: 0;
+  color: var(--text);
 }
 
 @media (min-width: 601px) {

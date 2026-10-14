@@ -2,6 +2,7 @@ import { useParams } from "react-router-dom";
 import { useState } from "react";
 import { coursesData } from "@/modules/cursos";
 import { studentsData } from "@/modules/alumnos";
+import { CheckIcon, CrossIcon } from "@/shared/components/Icon";
 import "../styles/Attendance.css";
 
 function Attendance() {
@@ -39,11 +40,11 @@ function Attendance() {
 
               <div className="attendance-controls">
                 <button className="present-button">
-                  Presente
+                  <CheckIcon /> Presente
                 </button>
 
                 <button className="absent-button">
-                  Ausente
+                  <CrossIcon /> Ausente
                 </button>
               </div>
             </article>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { getCourseById } from "../services/courseService";
+import { ArrowLeftIcon, StudentIcon, CheckIcon, CourseIcon } from "@/shared/components/Icon";
 import "../styles/CourseDetail.css";
 
 function CourseDetail() {
@@ -33,7 +34,7 @@ function CourseDetail() {
           <header className="course-detail-header">
             <span className="course-detail-kicker">Curso</span>
             <h1>Curso no encontrado</h1>
-            <button onClick={() => navigate(`/escuelas/${id}/cursos`)}>← Volver a cursos</button>
+            <button onClick={() => navigate(`/escuelas/${id}/cursos`)}><ArrowLeftIcon /> Volver a cursos</button>
           </header>
         </section>
       </main>
@@ -45,7 +46,7 @@ function CourseDetail() {
       <section className="course-detail-card">
         <header className="course-detail-header">
           <button className="logout-button" style={{marginBottom: '1rem'}} onClick={() => navigate(`/escuelas/${id}/cursos`)}>
-            ← Volver a Cursos
+            <ArrowLeftIcon /> Volver a Cursos
           </button>
           <br/>
           <span className="course-detail-kicker">
@@ -58,6 +59,13 @@ function CourseDetail() {
               {course.cantidad_alumnos !== undefined ? course.cantidad_alumnos : 0} alumnos
             </p>
           </div>
+
+          <dl className="course-detail-info">
+            <dt>Escuela</dt>
+            <dd>{course.escuela?.nombre || "Sin escuela"}</dd>
+            <dt>Curso</dt>
+            <dd>{course.nombre || course.name || "-"}</dd>
+          </dl>
         </header>
 
         <section className="course-detail-management">
@@ -68,18 +76,21 @@ function CourseDetail() {
               className="course-management-option"
               onClick={() => navigate(`/escuelas/${id}/cursos/${courseId}/alumnos`)}
             >
-              <span>Alumnos</span>
+              <span><StudentIcon /> Alumnos</span>
+              <small>Ver listado de alumnos</small>
             </button>
 
             <button
               className="course-management-option"
               onClick={() => navigate(`/escuelas/${id}/cursos/${courseId}/asistencia`)}
             >
-              <span>Asistencia</span>
+              <span><CheckIcon /> Asistencia</span>
+              <small>Registrar asistencia</small>
             </button>
 
-            <button className="course-management-option">
-              <span>Notas</span>
+            <button className="course-management-option" disabled title="Próximamente">
+              <span><CourseIcon /> Notas</span>
+              <small>Próximamente</small>
             </button>
           </div>
         </section>

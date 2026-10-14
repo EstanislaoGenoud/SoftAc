@@ -64,3 +64,24 @@
     padding: 32px;
   }
 }
+
+.students-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.students-pagination button {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  cursor: pointer;
+}
+
+.students-pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

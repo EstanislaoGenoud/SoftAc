@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getSchoolById } from "@/modules/escuelas";
-import { getCoursesBySchool } from "../services/courseService";
+import { getCoursesBySchool, getCourseById } from "../services/courseService";
 import CourseCard from "../components/CourseCard";
+import { CourseIcon, PlusIcon, ArrowLeftIcon } from "@/shared/components/Icon";
 import "@/modules/escuelas/styles/Schools.css";
 
 function Courses() {
@@ -21,7 +22,19 @@ function Courses() {
           getCoursesBySchool(id)
         ]);
         setSchool(schoolData);
-        setCourses(coursesData);
+
+        // El listado no trae cantidad_alumnos: lo completamos con el detalle de cada curso.
+        const enriched = await Promise.all(
+          coursesData.map(async (course) => {
+            try {
+              const detail = await getCourseById(course.id);
+              return { ...course, cantidad_alumnos: detail.cantidad_alumnos };
+            } catch {
+              return course;
+            }
+          })
+        );
+        setCourses(enriched);
       } catch (error) {
         console.error("Error al cargar cursos:", error);
       } finally {
@@ -38,7 +51,7 @@ function Courses() {
     <main className="schools-page">
       <header className="schools-header">
         <button className="logout-button" onClick={() => navigate(`/escuelas/${id}`)}>
-          ← Volver al Panel
+          <ArrowLeftIcon /> Volver al Panel
         </button>
 
         <p className="greeting">{school.nombre || school.name}</p>
@@ -51,18 +64,18 @@ function Courses() {
           className="new-school-button"
           onClick={() => navigate(`/escuelas/${id}/cursos/nuevo`)}
         >
-          + Nuevo curso
+          <PlusIcon /> Nuevo curso
         </button>
       </header>
 
       <section className="schools-list">
         {courses.length === 0 ? (
           <div className="empty-schools">
-            <div className="empty-schools-icon"></div>
+            <div className="empty-schools-icon"><CourseIcon /></div>
             <h2>No tenés cursos registrados</h2>
             <p>Podés agregar tu primer curso para comenzar a gestionar alumnos.</p>
             <button onClick={() => navigate(`/escuelas/${id}/cursos/nuevo`)}>
-              + Nuevo curso
+              <PlusIcon /> Nuevo curso
             </button>
           </div>
         ) : (

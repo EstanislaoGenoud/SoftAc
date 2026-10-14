@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import SchoolCard from "../components/SchoolCard";
 import { getSchools, deleteSchool } from "../services/schoolService";
 import { logout } from "@/modules/auth";
+import { SchoolIcon, PlusIcon } from "@/shared/components/Icon";
+import AccountMenu from "@/shared/components/AccountMenu";
 import "../styles/Schools.css";
 
 function Schools() {
@@ -45,11 +47,12 @@ function Schools() {
     return (
         <main className="schools-page">
             <header className="schools-header">
-                <button className="logout-button" onClick={handleLogout}>
-                    Cerrar sesión
-                </button>
 
-                <p className="greeting">Hola, Docente</p>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <p className="greeting">Hola, Docente</p>
+                    <AccountMenu onLogout={handleLogout} />
+                </div>
+
                 <h1>Mis Escuelas</h1>
                 <p className="description">Seleccione una institución para continuar.</p>
                 
@@ -57,18 +60,18 @@ function Schools() {
                     className="new-school-button"
                     onClick={() => navigate("/escuelas/nueva")}
                 >
-                    + Nueva escuela
+                    + <PlusIcon /> Nueva escuela
                 </button>
             </header>
 
             <section className="schools-list">
                 {schoolList.length === 0 ? (
                     <div className="empty-schools">
-                        <div className="empty-schools-icon"></div>
+                        <div className="empty-schools-icon"><SchoolIcon /></div>
                         <h2>No tenés escuelas registradas</h2>
                         <p>Podés agregar tu primera institución para comenzar.</p>
                         <button onClick={() => navigate("/escuelas/nueva")}>
-                            + Nueva escuela
+                            + <PlusIcon /> Nueva escuela
                         </button>
                     </div>
                 ) : (

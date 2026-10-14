@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getCourseById } from "@/modules/cursos";
-import { getStudentsByCourse, searchStudents } from "../services/studentService";
+import { getStudentsByCourse } from "../services/studentService";
 import StudentCard from "../components/StudentCard";
+import { ArrowLeftIcon, SearchIcon } from "@/shared/components/Icon";
 import "../styles/Students.css";
 
 function Students() {
@@ -13,6 +14,9 @@ function Students() {
     const [students, setStudents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
+    const [page, setPage] = useState(1);
+
+    const PAGE_SIZE = 10;
 
     useEffect(() => {
         async function fetchData() {
@@ -32,22 +36,26 @@ function Students() {
         fetchData();
     }, [courseId]);
 
-    async function handleSearch(e) {
+        // Filtro local por nombre, apellido o DNI sobre los alumnos del curso actual.
+        const filteredStudents = students.filter((student) => {
+            if (!searchQuery.trim()) return true;
+            const q = searchQuery.trim().toLowerCase();
+            const fullName = `${student.nombre || ""} ${student.apellido || ""}`.toLowerCase();
+            const dni = String(student.identificacion || student.dni || "").toLowerCase();
+            return (
+                (student.nombre || "").toLowerCase().includes(q) ||
+                (student.apellido || "").toLowerCase().includes(q) ||
+                fullName.includes(q) ||
+                dni.includes(q)
+            );
+        });
+        const filteredTotalPages = Math.max(1, Math.ceil(filteredStudents.length / PAGE_SIZE));
+        const filteredCurrentPage = Math.min(page, filteredTotalPages);
+        const filteredPageStudents = filteredStudents.slice((filteredCurrentPage - 1) * PAGE_SIZE, filteredCurrentPage * PAGE_SIZE);
+
+        async function handleSearch(e) {
         e.preventDefault();
-        if (!searchQuery.trim()) {
-            const studentsData = await getStudentsByCourse(courseId);
-            setStudents(studentsData);
-            return;
-        }
-        try {
-            setLoading(true);
-            const results = await searchStudents(searchQuery);
-            setStudents(results);
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setLoading(false);
-        }
+        setPage(1);
     }
 
     if (loading && !course) return <main className="students-page"><h1>Cargando...</h1></main>;
@@ -57,31 +65,31 @@ function Students() {
             <section className="students-card">
                 <header className="students-header">
                     <button className="logout-button" style={{marginBottom: '1rem'}} onClick={() => navigate(`/escuelas/${id}/cursos/${courseId}`)}>
-                        ← Volver al Curso
+                        <ArrowLeftIcon /> Volver al Curso
                     </button>
                     <span className="students-kicker">Alumnos</span>
                     <h1>{course?.nombre ?? "Curso"}</h1>
                     <p className="students-summary">
-                        {students.length} alumnos encontrados
+                        {filteredStudents.length} alumnos encontrados
                     </p>
                 </header>
 
                 <form onSubmit={handleSearch} style={{ padding: '1rem', display: 'flex', gap: '0.5rem' }}>
                     <input 
                         type="text" 
-                        placeholder="Buscar por nombre o apellido..." 
+                        placeholder="Buscar por nombre, apellido o DNI..."
                         value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
                         style={{ flex: 1, padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }}
                     />
-                    <button type="submit" style={{ padding: '0.5rem 1rem', borderRadius: '4px' }}>Buscar</button>
+                    <button type="submit" style={{ padding: '0.5rem 1rem', borderRadius: '4px' }}><SearchIcon /> Filtrar</button>
                 </form>
 
                 <section className="students-list">
-                    {students.length === 0 ? (
+                    {filteredStudents.length === 0 ? (
                         <p style={{textAlign: 'center', padding: '2rem'}}>No hay alumnos para mostrar.</p>
                     ) : (
-                        students.map((student) => (
+                        filteredPageStudents.map((student) => (
                             <StudentCard
                                 key={student.id}
                                 student={student}
@@ -89,6 +97,18 @@ function Students() {
                         ))
                     )}
                 </section>
+
+                {filteredTotalPages > 1 && (
+                    <nav className="students-pagination" aria-label="Paginación de alumnos">
+                        <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={filteredCurrentPage === 1}>
+                            <ArrowLeftIcon /> Anterior
+                        </button>
+                        <span>Página {filteredCurrentPage} de {filteredTotalPages}</span>
+                        <button onClick={() => setPage((p) => Math.min(filteredTotalPages, p + 1))} disabled={filteredCurrentPage === filteredTotalPages}>
+                            Siguiente <ArrowLeftIcon style={{transform:'rotate(180deg)'}}/>
+                        </button>
+                    </nav>
+                )}
             </section>
         </main>
     );

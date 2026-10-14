@@ -31,6 +31,7 @@ import {
   Attendance 
 } from "@/modules/asistencias";
 
+
 function App() {
 
   const [schools, setSchools] = useState(schoolsData);

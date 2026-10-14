@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { getSchoolById } from "../services/schoolService";
+import { CourseIcon, StudentIcon, CheckIcon, EditIcon, ArrowLeftIcon } from "@/shared/components/Icon";
 import "../styles/SchoolDashboard.css";
 
 function SchoolDashboard() {
@@ -45,7 +46,7 @@ function SchoolDashboard() {
                         La institución solicitada no existe o no tenés permiso para verla.
                     </p>
                     <button onClick={() => navigate("/escuelas")}>
-                        Volver a mis escuelas
+                        <ArrowLeftIcon /> Volver a mis escuelas
                     </button>
                 </header>
             </main>
@@ -69,7 +70,7 @@ function SchoolDashboard() {
 
             <section className="dashboard-stats">
                 <article className="stat-card">
-                    <span className="stat-icon">Cursos</span>
+                    <span className="stat-icon"><CourseIcon /></span>
                     <div>
                         <strong>{coursesCount}</strong>
                         <p> Cursos</p>
@@ -77,7 +78,7 @@ function SchoolDashboard() {
                 </article>
 
                 <article className="stat-card">
-                    <span className="stat-icon">Alumnos</span>
+                    <span className="stat-icon"><StudentIcon /></span>
                     <div>
                         <strong>{studentsCount}</strong>
                         <p> Alumnos</p>
@@ -93,7 +94,7 @@ function SchoolDashboard() {
                     onClick={() => navigate(`/escuelas/${id}/cursos`)}
                 >
                     <span>
-                        <strong>Cursos</strong>
+                        <strong><CourseIcon /> Cursos</strong>
                         <small>Administrar cursos</small>
                     </span>
                     →
@@ -101,7 +102,7 @@ function SchoolDashboard() {
 
                 <button className="dashboard-option">
                     <span>
-                        <strong>Alumnos</strong>
+                        <strong><StudentIcon /> Alumnos</strong>
                         <small>Consultar alumnos</small>
                     </span>
                     →
@@ -109,7 +110,7 @@ function SchoolDashboard() {
 
                 <button className="dashboard-option">
                     <span>
-                        <strong>Asistencia</strong>
+                        <strong><CheckIcon /> Asistencia</strong>
                         <small>Registrar asistencia</small>
                     </span>
                     →
@@ -117,7 +118,7 @@ function SchoolDashboard() {
 
                 <button className="dashboard-option">
                     <span>
-                        <strong>Notas</strong>
+                        <strong><CourseIcon /> Notas</strong>
                         <small>Gestionar calificaciones</small>
                     </span>
                     →
@@ -129,14 +130,14 @@ function SchoolDashboard() {
                     className="edit-button" 
                     onClick={() => navigate(`/escuelas/${id}/editar`)}
                 >
-                    Editar escuela
+                    <EditIcon /> Editar escuela
                 </button>
 
                 <button 
                     className="delete-button"
                     onClick={() => navigate("/escuelas")}
                 >
-                    Volver al listado
+                    <ArrowLeftIcon /> Volver al listado
                 </button>
             </section>
         </main>

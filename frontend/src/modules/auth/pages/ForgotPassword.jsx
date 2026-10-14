@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/ForgotPassword.css";
+import { ArrowLeftIcon, PlusIcon } from "@/shared/components/Icon";
 
 function ForgotPassword() {
 
@@ -49,7 +50,7 @@ function ForgotPassword() {
                     />
 
                     <button type="submit">
-                        Enviar instrucciones
+                        <PlusIcon /> Enviar instrucciones
                     </button>
 
                 </form>
@@ -65,7 +66,7 @@ function ForgotPassword() {
                     className="back-login-button"
                     onClick={() => navigate("/login")}
                 >
-                    ← Volver al Login
+                    <ArrowLeftIcon /> Volver al Login
                 </button>
 
             </section>

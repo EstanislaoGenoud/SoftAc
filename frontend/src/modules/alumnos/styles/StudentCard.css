@@ -36,3 +36,12 @@
   color: #6b7280;
   font-size: 14px;
 }
+
+.student-estado {
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.estado-regular { color: #16a34a; }
+.estado-libre { color: #ca8a04; }
+.estado-baja { color: #dc2626; }

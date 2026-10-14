@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { createCourse } from "../services/courseService";
-import { getSchoolById } from "@/modules/escuelas";
+import { getSchoolById, getSchools } from "@/modules/escuelas";
+import { ArrowLeftIcon, PlusIcon } from "@/shared/components/Icon";
 import "@/modules/escuelas/styles/EditSchool.css";
 
 function CreateCourse() {
@@ -9,25 +10,32 @@ function CreateCourse() {
   const navigate = useNavigate();
 
   const [school, setSchool] = useState(null);
+  const [schools, setSchools] = useState([]);
+  const [escuelaId, setEscuelaId] = useState(id);
   const [nombreCurso, setNombreCurso] = useState("");
   const [nombreMateria, setNombreMateria] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    async function fetchSchool() {
+    async function fetchData() {
       try {
-        const s = await getSchoolById(id);
-        setSchool(s);
+        const [schoolData, schoolsData] = await Promise.all([
+          getSchoolById(id),
+          getSchools()
+        ]);
+        setSchool(schoolData);
+        setSchools(schoolsData);
+        setEscuelaId(id);
       } catch (err) {
         console.error(err);
       }
     }
-    fetchSchool();
+    fetchData();
   }, [id]);
 
   async function handleSubmit(event) {
     event.preventDefault();
-    if (!nombreCurso.trim() || !nombreMateria.trim()) {
+    if (!nombreCurso.trim() || !nombreMateria.trim() || !escuelaId) {
       alert("Por favor completá todos los campos.");
       return;
     }
@@ -35,13 +43,12 @@ function CreateCourse() {
     try {
       setIsSubmitting(true);
       await createCourse({
-        escuelaId: id,
+        escuelaId,
         nombreCurso,
-        nombreMateria,
-        periodoId: '2024'
+        nombreMateria
       });
       alert("Curso creado exitosamente.");
-      navigate(`/escuelas/${id}/cursos`);
+      navigate(`/escuelas/${escuelaId}/cursos`);
     } catch (error) {
       alert("Error al crear el curso: " + error.message);
     } finally {
@@ -53,13 +60,32 @@ function CreateCourse() {
     <main className="edit-school-page">
       <header className="edit-school-header">
         <button className="logout-button" onClick={() => navigate(`/escuelas/${id}/cursos`)}>
-          ← Volver
+          <ArrowLeftIcon /> Volver
         </button>
         <h1>Crear nuevo curso</h1>
         <p>Asociando curso a: <strong>{school ? (school.nombre || school.name) : 'Cargando...'}</strong></p>
       </header>
 
       <form className="edit-school-form" onSubmit={handleSubmit}>
+        <div className="form-group">
+          <label htmlFor="escuelaId">Escuela</label>
+          <select
+            id="escuelaId"
+            value={escuelaId}
+            onChange={(e) => setEscuelaId(e.target.value)}
+          >
+            {schools.length === 0 ? (
+              <option value={id}>Cargando escuelas...</option>
+            ) : (
+              schools.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.nombre || s.name}
+                </option>
+              ))
+            )}
+          </select>
+        </div>
+
         <div className="form-group">
           <label htmlFor="nombreCurso">Nombre del curso (Ej: 4° Año A)</label>
           <input
@@ -83,7 +109,7 @@ function CreateCourse() {
         </div>
 
         <button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Creando..." : "Crear curso"}
+          {isSubmitting ? "Creando..." : <><PlusIcon /> Crear curso</>}
         </button>
       </form>
     </main>

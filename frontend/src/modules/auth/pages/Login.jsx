@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { login, register } from "../services/authService";
+import { PlusIcon } from "@/shared/components/Icon";
 import "../styles/Login.css";
 
 function Login() {
@@ -66,7 +67,7 @@ function Login() {
                     </div>
 
                     <button type="submit">
-                        {isRegistering ? "Crear cuenta" : "Iniciar sesión"}
+                        {isRegistering ? <><PlusIcon /> Crear cuenta</> : "Iniciar sesión"}
                     </button>
                     
                     <button type="button"

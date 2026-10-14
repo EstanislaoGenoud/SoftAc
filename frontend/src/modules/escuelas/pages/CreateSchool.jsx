@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createSchool } from "../services/schoolService";
+import { PlusIcon } from "@/shared/components/Icon";
 import "../styles/CreateSchool.css";
 
 function CreateSchool() {
@@ -76,7 +77,7 @@ function CreateSchool() {
         </div>
 
         <button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Creando..." : "Crear escuela"}
+          {isSubmitting ? "Creando..." : <><PlusIcon /> Crear escuela</>}
         </button>
 
       </form>
