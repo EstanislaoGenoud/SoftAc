@@ -31,6 +31,10 @@ import {
   Attendance 
 } from "@/modules/asistencias";
 
+import {
+  Evaluations
+} from "@/modules/evaluaciones";
+
 
 function App() {
 
@@ -137,6 +141,12 @@ function App() {
         <Route path="/escuelas/:id/cursos/:courseId/asistencia" element={
           <ProtectedRoute>
             <Attendance />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/escuelas/:id/cursos/:courseId/evaluaciones" element={
+          <ProtectedRoute>
+            <Evaluations />
           </ProtectedRoute>
         } />
 

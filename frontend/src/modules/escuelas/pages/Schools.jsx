@@ -60,7 +60,7 @@ function Schools() {
                     className="new-school-button"
                     onClick={() => navigate("/escuelas/nueva")}
                 >
-                    + <PlusIcon /> Nueva escuela
+                     <PlusIcon /> Nueva escuela
                 </button>
             </header>
 

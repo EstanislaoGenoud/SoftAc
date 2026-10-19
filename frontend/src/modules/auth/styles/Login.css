@@ -88,6 +88,41 @@
   box-shadow: 0 0 0 4px rgba(8, 127, 123, 0.1);
 }
 
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-input-wrapper input {
+  padding-right: 88px;
+}
+
+.login-form .password-visibility-button {
+  position: absolute;
+  right: 8px;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transform: none;
+}
+
+.login-form .password-visibility-button:hover {
+  background: var(--accent-light);
+  color: var(--accent);
+  transform: none;
+}
+
 .forgot-password {
   text-align: right;
   margin-top: -8px;

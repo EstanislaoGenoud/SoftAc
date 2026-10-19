@@ -7,6 +7,7 @@ import "../styles/Login.css";
 function Login() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
     const [isRegistering, setIsRegistering] = useState(false);
 
     const navigate = useNavigate();
@@ -57,13 +58,24 @@ function Login() {
 
                     <div className="form-group">
                         <label htmlFor="password">Contraseña</label>
-                        <input
-                            id="password"
-                            type="password"
-                            placeholder="Ingresa tu contraseña"
-                            value={password}
-                            onChange={(event) => setPassword(event.target.value)}
-                        />
+                        <div className="password-input-wrapper">
+                            <input
+                                id="password"
+                                type={showPassword ? "text" : "password"}
+                                placeholder="Ingresa tu contraseña"
+                                value={password}
+                                onChange={(event) => setPassword(event.target.value)}
+                            />
+                            <button
+                                type="button"
+                                className="password-visibility-button"
+                                onClick={() => setShowPassword((visible) => !visible)}
+                                aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                                aria-pressed={showPassword}
+                            >
+                                {showPassword ? "Ocultar" : "Mostrar"}
+                            </button>
+                        </div>
                     </div>
 
                     <button type="submit">

@@ -24,6 +24,9 @@
 
 .student-info {
   flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .student-info h2 {

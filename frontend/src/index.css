@@ -38,9 +38,20 @@
   --shadow-soft: 0 6px 20px rgba(0, 0, 0, 0.35);
 }
 
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html,
 body {
+  width: 100%;
+  max-width: 100%;
   margin: 0;
-  min-width: 320px;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+body {
   background:
     radial-gradient(circle at 8% 0%, rgba(127, 199, 189, 0.18), transparent 30rem),
     var(--bg);
@@ -54,7 +65,7 @@ body {
   min-height: 100svh;
   display: flex;
   flex-direction: column;
-  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 h1,

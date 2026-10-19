@@ -1,8 +1,9 @@
 .schools-page {
   min-height: 100vh;
-  width: min(100% - 32px, 1080px);
+  width: 100%;
+  max-width: 1080px;
   margin: 0 auto;
-  padding: 32px 0 56px;
+  padding: 20px 14px 56px;
   box-sizing: border-box;
   text-align: left;
 }
@@ -29,7 +30,9 @@
   grid-column: 1;
   grid-row: 2;
   margin: 0 0 8px;
-  font-size: clamp(2rem, 4vw, 3rem);
+  font-size: clamp(1.6rem, 5vw, 2.5rem);
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .description {

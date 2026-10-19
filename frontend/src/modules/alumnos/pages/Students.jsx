@@ -74,15 +74,17 @@ function Students() {
                     </p>
                 </header>
 
-                <form onSubmit={handleSearch} style={{ padding: '1rem', display: 'flex', gap: '0.5rem' }}>
+                <form className="students-search-form" onSubmit={handleSearch}>
                     <input 
                         type="text" 
+                        className="students-search-input"
                         placeholder="Buscar por nombre, apellido o DNI..."
                         value={searchQuery}
                         onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
-                        style={{ flex: 1, padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc' }}
                     />
-                    <button type="submit" style={{ padding: '0.5rem 1rem', borderRadius: '4px' }}><SearchIcon /> Filtrar</button>
+                    <button type="submit" className="students-search-button">
+                        <SearchIcon /> Filtrar
+                    </button>
                 </form>
 
                 <section className="students-list">

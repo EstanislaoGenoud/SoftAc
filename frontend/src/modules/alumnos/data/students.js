@@ -18,6 +18,42 @@ const students = [
     dni: "42345678"
   },
   {
+    id: 7,
+    courseId: 1,
+    name: "Camila Torres",
+    dni: "46789012"
+  },
+  {
+    id: 8,
+    courseId: 1,
+    name: "Nicolas Ramirez",
+    dni: "47890123"
+  },
+  {
+    id: 9,
+    courseId: 1,
+    name: "Julieta Castro",
+    dni: "48901234"
+  },
+  {
+    id: 10,
+    courseId: 1,
+    name: "Tomas Herrera",
+    dni: "49012345"
+  },
+  {
+    id: 11,
+    courseId: 1,
+    name: "Abril Medina",
+    dni: "40198765"
+  },
+  {
+    id: 12,
+    courseId: 1,
+    name: "Santiago Acosta",
+    dni: "41298765"
+  },
+  {
     id: 4,
     courseId: 2,
     name: "Sofía Martínez",
