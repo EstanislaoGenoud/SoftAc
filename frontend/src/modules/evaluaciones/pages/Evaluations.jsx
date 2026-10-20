@@ -182,14 +182,14 @@ function Evaluations() {
           <ArrowLeftIcon /> Volver al curso
         </button>
         <header className="evaluations-header">
-          <span className="evaluations-kicker">Evaluaciones · #238 · #250</span>
+          <span className="evaluations-kicker">Evaluaciones</span>
           <h1>{course?.name || "Curso"}</h1>
           <p>Creá una evaluación para organizar las próximas calificaciones.</p>
         </header>
 
         <section className="grading-config" aria-labelledby="grading-config-title">
           <div>
-            <span className="evaluations-kicker">#268 · Configuración mock</span>
+            <span className="evaluations-kicker">Configuración mock</span>
             <h2 id="grading-config-title">Modelo de calificación</h2>
             <p>Configuración temporal del sistema para este entorno frontend.</p>
           </div>
@@ -269,7 +269,7 @@ function Evaluations() {
           <section className="average-section" aria-labelledby="average-title">
             <div className="average-section-header">
               <div>
-                <span className="evaluations-kicker">#286 · Promedio</span>
+                <span className="evaluations-kicker">Promedio</span>
                 <h3 id="average-title">Promedio del curso</h3>
               </div>
               <strong>{!averageCalculationEnabled ? "Bloqueado" : courseAverage === null ? "Sin datos" : courseAverage}</strong>
@@ -288,7 +288,7 @@ function Evaluations() {
           <section className="evolution-section" aria-labelledby="evolution-title">
             <div className="evolution-header">
               <div>
-                <span className="evaluations-kicker">#303 · Evolución</span>
+                <span className="evaluations-kicker">Evolución</span>
                 <h3 id="evolution-title">Evolución académica individual</h3>
               </div>
             </div>
@@ -371,7 +371,7 @@ function Evaluations() {
           <section className="grades-section" aria-labelledby="grades-title">
             <header className="grades-header">
               <div>
-                <span className="evaluations-kicker">#258 · Carga múltiple</span>
+                <span className="evaluations-kicker">Carga múltiple</span>
                 <h2 id="grades-title">Notas: {selectedEvaluation.nombre}</h2>
                 <p>{gradingConfig.modelo === "cuantitativo" ? "Ingresá valores entre 1 y 10. Podés usar decimales." : "Seleccioná una categoría cualitativa para cada alumno."}</p>
               </div>

@@ -25,6 +25,25 @@
   border-bottom: 1px solid var(--border);
 }
 
+.students-back-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  margin-bottom: 1rem;
+  padding: 8px 4px;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.students-back-button:hover {
+  color: var(--accent);
+}
+
 .students-kicker {
   display: inline-block;
   margin-bottom: 10px;

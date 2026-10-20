@@ -64,7 +64,7 @@ function Students() {
         <main className="students-page">
             <section className="students-card">
                 <header className="students-header">
-                    <button className="logout-button" style={{marginBottom: '1rem'}} onClick={() => navigate(`/escuelas/${id}/cursos/${courseId}`)}>
+                    <button className="students-back-button" onClick={() => navigate(`/escuelas/${id}/cursos/${courseId}`)}>
                         <ArrowLeftIcon /> Volver al Curso
                     </button>
                     <span className="students-kicker">Alumnos</span>
