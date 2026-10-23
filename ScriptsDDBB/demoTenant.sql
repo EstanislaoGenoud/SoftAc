@@ -60,23 +60,30 @@ CREATE TABLE horarios (
 );
 CREATE TABLE clases (
     id CHAR(36) PRIMARY KEY,
+    curso_materia_id CHAR(36) NOT NULL,
     horario_id CHAR(36) NULL,
     fecha DATE NOT NULL,
-    tema_dictado TEXT NULL,
+    tema TEXT NULL,
     observaciones TEXT NULL,
     estado ENUM('DICTADA', 'SUSPENDIDA', 'FERIADO') DEFAULT 'DICTADA',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (curso_materia_id) REFERENCES cursos_materias(id) ON DELETE RESTRICT,
     FOREIGN KEY (horario_id) REFERENCES horarios(id) ON DELETE SET NULL,
     INDEX idx_fecha (fecha)
 );
 CREATE TABLE asistencias (
     id CHAR(36) PRIMARY KEY,
     clase_id CHAR(36) NOT NULL,
-    inscripcion_id CHAR(36) NOT NULL,
-    presente BOOLEAN NOT NULL,
+    alumno_id CHAR(36) NOT NULL,
+    estado ENUM('PRESENTE', 'MEDIA_FALTA', 'AUSENTE', 'AUSENTE_CON_CERTIFICADO') DEFAULT 'PRESENTE',
+    presente BOOLEAN DEFAULT TRUE,
+    observacion TEXT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (clase_id) REFERENCES clases(id) ON DELETE CASCADE,
-    FOREIGN KEY (inscripcion_id) REFERENCES inscripciones(id) ON DELETE RESTRICT,
-    UNIQUE INDEX idx_clase_inscripcion (clase_id, inscripcion_id)
+    FOREIGN KEY (alumno_id) REFERENCES alumnos(id) ON DELETE RESTRICT,
+    UNIQUE INDEX idx_clase_alumno (clase_id, alumno_id)
 );
 CREATE TABLE escalas_calificacion (
     id CHAR(36) PRIMARY KEY,
