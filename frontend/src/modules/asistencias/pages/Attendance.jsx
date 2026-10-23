@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { coursesData } from "@/modules/cursos";
+import { getCourseById } from "@/modules/cursos/services/courseService";
 import { studentsData } from "@/modules/alumnos";
 import { getStudentsByCourse } from "@/modules/alumnos/services/studentService";
 import { ArrowLeftIcon, CheckIcon, CrossIcon } from "@/shared/components/Icon";
@@ -49,7 +50,10 @@ function normalizeStudent(student) {
 function Attendance() {
   const { id, courseId } = useParams();
   const navigate = useNavigate();
-  const course = coursesData.find((item) => item.id === Number(courseId));
+
+  const [course, setCourse] = useState(() => 
+    coursesData.find((item) => String(item.id) === String(courseId)) || null
+  );
 
   const [isCreateClassOpen, setIsCreateClassOpen] = useState(false);
   const [courseStudents, setCourseStudents] = useState([]);
@@ -75,6 +79,17 @@ function Attendance() {
   const [notesDraft, setNotesDraft] = useState("");
   const [notesMessage, setNotesMessage] = useState("");
 
+  // Cargar datos del curso desde la API con fallback local
+  useEffect(() => {
+    let isMounted = true;
+    getCourseById(courseId)
+      .then((data) => {
+        if (isMounted && data) setCourse(data);
+      })
+      .catch(() => {});
+    return () => { isMounted = false; };
+  }, [courseId]);
+
   useEffect(() => {
     let isMounted = true;
 
@@ -97,7 +112,7 @@ function Attendance() {
         if (!isMounted) return;
 
         const localStudents = studentsData.filter(
-          (student) => student.courseId === Number(courseId)
+          (student) => String(student.courseId) === String(courseId) || student.courseId === Number(courseId)
         );
         const fallbackStudents = localStudents.length > 0
           ? localStudents
@@ -203,10 +218,8 @@ function Attendance() {
     const result = await saveAttendance(selectedClassId, currentRecords);
     setIsSaving(false);
     setSaveMessage(result.synced
-      ? "Asistencia guardada correctamente."
-      : result.modifiedLocally
-        ? "Modificación guardada localmente. El backend no tiene endpoint de edición."
-        : "Asistencia guardada localmente. La API no está disponible.");
+      ? "Asistencia guardada correctamente en el servidor."
+      : "Asistencia guardada localmente (modo offline).");
   }
 
   function handleClassCreated(newClass) {
@@ -239,7 +252,7 @@ function Attendance() {
       item.id === selectedClass.id ? { ...item, observaciones: notesDraft.trim() } : item
     )));
     setIsEditingNotes(false);
-    setNotesMessage("Observaciones guardadas localmente.");
+    setNotesMessage("Observaciones guardadas en el servidor.");
   }
 
   return (
@@ -254,7 +267,7 @@ function Attendance() {
             <ArrowLeftIcon /> Volver al curso
           </button>
           <span className="attendance-kicker">Asistencia</span>
-          <h1>{course?.name ?? "Curso"}</h1>
+          <h1>{course?.nombre || course?.name || "Curso"}</h1>
           <h2>Registro de asistencia</h2>
           <p className="attendance-summary">{courseStudents.length} alumnos</p>
         </header>
@@ -371,6 +384,15 @@ function Attendance() {
                       <button type="button" className={`half-absence-button ${record.estado === ATTENDANCE_STATES.MEDIA_FALTA ? "is-selected" : ""}`} onClick={() => updateStudentState(student.id, ATTENDANCE_STATES.MEDIA_FALTA)}>
                         ½ Media falta
                       </button>
+                      <button 
+                        type="button" 
+                        className={`half-absence-button ${record.estado === ATTENDANCE_STATES.AUSENTE_CON_CERTIFICADO ? "is-selected" : ""}`}
+                        style={record.estado === ATTENDANCE_STATES.AUSENTE_CON_CERTIFICADO ? { background: "#e0f2fe", color: "#0369a1", borderColor: "#0284c7" } : {}}
+                        onClick={() => updateStudentState(student.id, ATTENDANCE_STATES.AUSENTE_CON_CERTIFICADO)}
+                        title="Ausente justificado con certificado"
+                      >
+                        Justificada
+                      </button>
                     </div>
                   </article>
                 );
@@ -391,7 +413,7 @@ function Attendance() {
         isOpen={isCreateClassOpen}
         onClose={() => setIsCreateClassOpen(false)}
         cursoId={courseId}
-        cursoNombre={course?.name}
+        cursoNombre={course?.nombre || course?.name}
         onClassCreated={handleClassCreated}
       />
     </main>

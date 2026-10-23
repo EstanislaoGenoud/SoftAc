@@ -4,7 +4,8 @@ const STORAGE_PREFIX = "softac_asistencia_";
 export const ATTENDANCE_STATES = {
   PRESENTE: "PRESENTE",
   AUSENTE: "AUSENTE",
-  MEDIA_FALTA: "MEDIA_FALTA"
+  MEDIA_FALTA: "MEDIA_FALTA",
+  AUSENTE_CON_CERTIFICADO: "AUSENTE_CON_CERTIFICADO"
 };
 
 function getAuthHeaders() {
@@ -42,6 +43,7 @@ function writeLocalAttendance(claseId, records) {
 function normalizeState(state) {
   if (state === ATTENDANCE_STATES.AUSENTE) return ATTENDANCE_STATES.AUSENTE;
   if (state === ATTENDANCE_STATES.MEDIA_FALTA) return ATTENDANCE_STATES.MEDIA_FALTA;
+  if (state === ATTENDANCE_STATES.AUSENTE_CON_CERTIFICADO) return ATTENDANCE_STATES.AUSENTE_CON_CERTIFICADO;
   return ATTENDANCE_STATES.PRESENTE;
 }
 
@@ -49,6 +51,7 @@ export function attendanceValue(state) {
   const normalized = normalizeState(state);
   if (normalized === ATTENDANCE_STATES.AUSENTE) return 0;
   if (normalized === ATTENDANCE_STATES.MEDIA_FALTA) return 0.5;
+  if (normalized === ATTENDANCE_STATES.AUSENTE_CON_CERTIFICADO) return 1;
   return 1;
 }
 
@@ -70,7 +73,11 @@ export function summarizeAttendance(records = []) {
   const summary = records.reduce(
     (result, record) => {
       const state = normalizeState(record.estado);
-      result[state] += 1;
+      if (result[state] !== undefined) {
+        result[state] += 1;
+      } else {
+        result[state] = 1;
+      }
       return result;
     },
     {
@@ -97,21 +104,24 @@ export async function getAttendance(claseId) {
     });
 
     if (!response.ok) throw new Error("No se pudo obtener la asistencia");
-    const backendRecords = await response.json();
-    const normalizedBackendRecords = backendRecords.reduce((result, item) => {
+    const backendData = await response.json();
+    const items = Array.isArray(backendData) ? backendData : (backendData?.asistencias || []);
+    const normalizedBackendRecords = items.reduce((result, item) => {
       result[item.alumno_id] = {
         alumnoId: item.alumno_id,
-        estado: item.observacion === ATTENDANCE_STATES.MEDIA_FALTA
+        estado: item.estado || (item.observacion === ATTENDANCE_STATES.MEDIA_FALTA
           ? ATTENDANCE_STATES.MEDIA_FALTA
           : item.presente
             ? ATTENDANCE_STATES.PRESENTE
-            : ATTENDANCE_STATES.AUSENTE,
+            : ATTENDANCE_STATES.AUSENTE),
         observacion: item.observacion || ""
       };
       return result;
     }, {});
 
-    return { ...normalizedBackendRecords, ...localRecords };
+    const merged = { ...localRecords, ...normalizedBackendRecords };
+    writeLocalAttendance(claseId, merged);
+    return merged;
   } catch {
     return localRecords;
   }
@@ -120,25 +130,11 @@ export async function getAttendance(claseId) {
 export async function saveAttendance(claseId, records) {
   writeLocalAttendance(claseId, records);
 
-  let alreadySynced = false;
-  try {
-    alreadySynced = localStorage.getItem(syncedKey(claseId)) === "true";
-  } catch {
-    alreadySynced = false;
-  }
-
-  if (alreadySynced) {
-    return { records, synced: false, modifiedLocally: true };
-  }
-
   const payload = Object.values(records).map((record) => ({
     alumnoId: String(record.alumnoId),
-    // Media falta se conserva con precisión en frontend y se marca como presente
-    // en la API compatible, dejando el estado explícito en observacion.
-    presente: record.estado !== ATTENDANCE_STATES.AUSENTE,
-    observacion: record.estado === ATTENDANCE_STATES.MEDIA_FALTA
-      ? ATTENDANCE_STATES.MEDIA_FALTA
-      : record.observacion || undefined
+    estado: record.estado || (record.presente ? ATTENDANCE_STATES.PRESENTE : ATTENDANCE_STATES.AUSENTE),
+    presente: record.estado ? record.estado !== ATTENDANCE_STATES.AUSENTE : record.presente,
+    observacion: record.observacion || undefined
   }));
 
   try {
@@ -148,14 +144,14 @@ export async function saveAttendance(claseId, records) {
       body: JSON.stringify({ registros: payload })
     });
 
-    if (!response.ok) throw new Error("No se pudo guardar la asistencia");
+    if (!response.ok) throw new Error("No se pudo guardar la asistencia en el servidor");
+    const savedData = await response.json().catch(() => ({}));
     try {
       localStorage.setItem(syncedKey(claseId), "true");
-    } catch {
-      // La asistencia ya fue aceptada por la API.
-    }
-    return { records, synced: true };
-  } catch {
+    } catch {}
+    return { records, synced: true, data: savedData };
+  } catch (error) {
+    console.warn("Aviso API Asistencias (guardado en caché local):", error.message);
     return { records, synced: false };
   }
 }
@@ -168,4 +164,23 @@ export function getStudentRecords(studentId, attendanceByClass = {}) {
   return Object.values(attendanceByClass)
     .map((records) => records[studentId])
     .filter(Boolean);
+}
+
+// Conexión con endpoints avanzados del backend (HU-15 y HU-16)
+export async function getAttendancePercentagesByCourse(courseId) {
+  const response = await fetch(`${API_URL}/asistencias/porcentaje/curso/${courseId}`, {
+    method: "GET",
+    headers: getAuthHeaders()
+  });
+  if (!response.ok) throw new Error("Error al obtener porcentajes del curso");
+  return await response.json();
+}
+
+export async function getAtRiskStudents(courseId, umbral = 75) {
+  const response = await fetch(`${API_URL}/asistencias/riesgo/curso/${courseId}?umbral=${umbral}`, {
+    method: "GET",
+    headers: getAuthHeaders()
+  });
+  if (!response.ok) throw new Error("Error al obtener alumnos en riesgo");
+  return await response.json();
 }

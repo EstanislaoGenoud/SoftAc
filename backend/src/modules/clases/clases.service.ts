@@ -66,13 +66,17 @@ export class ClasesService {
     return clase;
   }
 
-  // Listar clases por cursoMateria
+  // Listar clases por cursoMateria (o curso)
   async findByCursoMateria(cursoMateriaId: string) {
-    return this.claseRepo.find({ 
+    const clases = await this.claseRepo.find({ 
       where: { curso_materia_id: cursoMateriaId },
       relations: ['cursoMateria', 'cursoMateria.curso', 'cursoMateria.materia'],
       order: { fecha: 'DESC', created_at: 'DESC' }
     });
+    if (clases.length > 0) {
+      return clases;
+    }
+    return this.findByCurso(cursoMateriaId);
   }
 
   // Listar clases por curso

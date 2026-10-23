@@ -11,15 +11,15 @@ function getAuthHeaders() {
 /**
  * HU-17: Registrar una nueva clase
  * Endpoint backend: POST /clases
- * Body: { cursoMateriaId, fecha, estado, tema }
- * Nota: 'observaciones' se incluye en la respuesta para el frontend si el backend aún no la persiste.
+ * Body: { cursoMateriaId, fecha, estado, tema, observaciones }
  */
 export async function createClase(data) {
     const payload = {
         cursoMateriaId: data.cursoMateriaId,
         fecha: data.fecha,
         estado: data.estado || 'DICTADA',
-        tema: data.tema
+        tema: data.tema,
+        observaciones: data.observaciones || undefined
     };
 
     try {
@@ -35,16 +35,14 @@ export async function createClase(data) {
         }
 
         const nuevaClase = await response.json();
-        // Preservamos observaciones en el cliente si fueron ingresadas
         if (data.observaciones) {
-            nuevaClase.observaciones = data.observaciones;
             guardarObservacionLocal(nuevaClase.id, data.observaciones);
         }
 
         return nuevaClase;
     } catch (error) {
         console.warn("Aviso API Clases (usando fallback mock local):", error.message);
-        // Fallback resiliente para desarrollo frontend si el backend tiene error de FK o está desconectado:
+        // Fallback resiliente para desarrollo frontend si el backend está desconectado:
         const mockClase = {
             id: 'mock-clase-' + Date.now(),
             curso_materia_id: data.cursoMateriaId,
@@ -90,10 +88,25 @@ export async function getClasesByCursoMateria(cursoMateriaId) {
 
 /**
  * HU-18: Consultar la última clase registrada de un curso
- * Obtiene las clases ordenadas cronológicamente (más reciente primero)
- * y retorna la primera clase o null si aún no se registraron clases.
+ * Llama a GET /clases/curso-materia/:id/ultima o busca la más reciente.
  */
 export async function getUltimaClase(cursoMateriaId) {
+    try {
+        const response = await fetch(`${API_URL}/clases/curso-materia/${cursoMateriaId}/ultima`, {
+            method: 'GET',
+            headers: getAuthHeaders()
+        });
+        if (response.ok) {
+            const data = await response.json();
+            return {
+                ...data,
+                observaciones: data.observaciones || obtenerObservacionLocal(data.id) || ''
+            };
+        }
+    } catch {
+        // Fallback al listado ordenado
+    }
+
     try {
         const clases = await getClasesByCursoMateria(cursoMateriaId);
         if (!clases || clases.length === 0) return null;
@@ -106,15 +119,14 @@ export async function getUltimaClase(cursoMateriaId) {
 
 /**
  * HU-19: Registrar o actualizar observaciones de una clase
- * Guarda la observación en caché local (para resiliencia y modo offline)
- * e intenta sincronizarla con el backend mediante PATCH /clases/:id.
+ * Endpoint backend: PATCH /clases/:id/observaciones o PATCH /clases/:id
  */
 export async function saveObservacionClase(claseId, observacion) {
     guardarObservacionLocal(claseId, observacion);
     actualizarObservacionEnClasesLocales(claseId, observacion);
 
     try {
-        const response = await fetch(`${API_URL}/clases/${claseId}`, {
+        const response = await fetch(`${API_URL}/clases/${claseId}/observaciones`, {
             method: 'PATCH',
             headers: getAuthHeaders(),
             body: JSON.stringify({ observaciones: observacion })
@@ -122,13 +134,22 @@ export async function saveObservacionClase(claseId, observacion) {
         if (response.ok) {
             return await response.json();
         }
-    } catch (error) {
-        console.warn("Aviso API Clases (persistencia local de observaciones):", error.message);
+    } catch {
+        try {
+            const fallbackResponse = await fetch(`${API_URL}/clases/${claseId}`, {
+                method: 'PATCH',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ observaciones: observacion })
+            });
+            if (fallbackResponse.ok) {
+                return await fallbackResponse.json();
+            }
+        } catch (error) {
+            console.warn("Aviso API Clases (persistencia local de observaciones):", error.message);
+        }
     }
     return { id: claseId, observaciones: observacion };
 }
-
-
 
 /* Helpers de almacenamiento local provisional para observaciones y modo offline */
 function guardarObservacionLocal(claseId, obs) {
