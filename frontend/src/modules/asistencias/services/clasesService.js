@@ -98,6 +98,7 @@ export async function getUltimaClase(cursoMateriaId) {
         });
         if (response.ok) {
             const data = await response.json();
+            if (!data) return null;
             return {
                 ...data,
                 observaciones: data.observaciones || obtenerObservacionLocal(data.id) || ''

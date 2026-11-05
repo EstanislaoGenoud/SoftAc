@@ -1,4 +1,5 @@
 import { Entity, Column, PrimaryColumn, ManyToOne, OneToMany, JoinColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import type { Relation } from 'typeorm';
 import { CursoMateria } from '../../cursos/entities/curso-materia.entity.js';
 import { Asistencia } from '../../asistencias/entities/asistencia.entity.js';
 
@@ -8,7 +9,7 @@ export class Clase {
   
   @Column() curso_materia_id: string;
 
-  @Column({ nullable: true }) horario_id?: string | null;
+  @Column({ type: 'varchar', nullable: true }) horario_id?: string | null;
   
   @Column({ type: 'date' }) fecha: string;
   
@@ -27,10 +28,10 @@ export class Clase {
   // HU-17 (#215): Relación clase-curso a través de CursoMateria
   @ManyToOne(() => CursoMateria)
   @JoinColumn({ name: 'curso_materia_id' })
-  cursoMateria: CursoMateria;
+  cursoMateria: Relation<CursoMateria>;
 
   // HU-13 (#182): Relacionar clase con asistencias
   @OneToMany(() => Asistencia, (asistencia) => asistencia.clase)
-  asistencias: Asistencia[];
+  asistencias: Relation<Asistencia[]>;
 }
 

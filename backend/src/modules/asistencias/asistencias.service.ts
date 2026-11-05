@@ -300,7 +300,7 @@ export class AsistenciasService {
   // Cada AUSENTE_CON_CERTIFICADO suma 1.0 punto (justificada)
   // Cada AUSENTE suma 0.0 puntos
   // Porcentaje = (Puntos Obtenidos / Total Clases Dictadas) * 100
-  async calcularPorcentajeAlumno(alumnoId: string, cursoMateriaId?: string) {
+  async calcularPorcentajeAlumno(alumnoId: string, cursoMateriaId?: string | string[]) {
     const alumno = await this.alumnoRepo.findOne({ where: { id: alumnoId } });
     if (!alumno) {
       throw new NotFoundException(`Alumno con ID ${alumnoId} no encontrado`);
@@ -314,7 +314,10 @@ export class AsistenciasService {
     // Filtramos solo clases dictadas y (si aplica) del cursoMateria especificado
     const asistenciasValidas = asistencias.filter(a => {
       if (!a.clase || a.clase.estado === 'SUSPENDIDA') return false;
-      if (cursoMateriaId && a.clase.curso_materia_id !== cursoMateriaId) return false;
+      if (cursoMateriaId) {
+        const cursoMateriaIds = Array.isArray(cursoMateriaId) ? cursoMateriaId : [cursoMateriaId];
+        if (!cursoMateriaIds.includes(a.clase.curso_materia_id)) return false;
+      }
       return true;
     });
 
@@ -398,7 +401,7 @@ export class AsistenciasService {
     const resultados = [];
 
     for (const alumnoId of alumnoIds) {
-      const calculo = await this.calcularPorcentajeAlumno(alumnoId, cursoMateriaIds[0]);
+      const calculo = await this.calcularPorcentajeAlumno(alumnoId, cursoMateriaIds);
       resultados.push(calculo);
     }
 

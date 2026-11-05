@@ -93,13 +93,11 @@ describe('ClasesService', () => {
       expect(mockClaseRepo.findOne).toHaveBeenCalled();
     });
 
-    it('#224: Debería lanzar NotFoundException si no hay clases para el curso', async () => {
+    it('#224: Debería retornar null si todavía no hay clases para el curso', async () => {
       mockClaseRepo.findOne.mockResolvedValue(null);
       mockCursoMateriaRepo.find.mockResolvedValue([]);
 
-      await expect(
-        service.findUltimaClase('cm-sin-clases')
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.findUltimaClase('cm-sin-clases')).resolves.toBeNull();
     });
   });
 
