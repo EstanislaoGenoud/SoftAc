@@ -1,5 +1,5 @@
 import { Entity, Column, PrimaryColumn, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn, Unique } from 'typeorm';
-import type {Relation} from 'typeorm';
+import type { Relation } from 'typeorm';
 import { Clase } from '../../clases/entities/clase.entity.js';
 import { Alumno } from '../../alumnos/entities/alumno.entity.js';
 
@@ -81,6 +81,6 @@ export class Asistencia {
   // HU-13 (#185): Asociar alumno
   @ManyToOne(() => Alumno, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'alumno_id' })
-  alumno: Alumno;
+  alumno: Relation<Alumno>;
 }
 

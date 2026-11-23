@@ -13,7 +13,11 @@ export async function getSchools(){
         method: 'GET',
         headers: getAuthHeaders()
     });
-    if (!response.ok) throw new Error('Error al obtener escuelas');
+    if (!response.ok) {
+        const error = new Error('Error al obtener escuelas');
+        error.status = response.status;
+        throw error;
+    }
     return await response.json();
 }
 
