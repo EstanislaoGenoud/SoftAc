@@ -15,18 +15,6 @@
   box-shadow: var(--shadow-soft);
 }
 
-.evaluations-back {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 0;
-  border: 0;
-  background: transparent;
-  color: var(--accent);
-  cursor: pointer;
-  font-weight: 700;
-}
-
 .evaluations-header {
   padding: 18px 0;
   border-bottom: 1px solid var(--border);

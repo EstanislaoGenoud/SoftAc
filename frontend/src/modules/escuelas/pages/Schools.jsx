@@ -4,7 +4,6 @@ import SchoolCard from "../components/SchoolCard";
 import { getSchools, deleteSchool } from "../services/schoolService";
 import { logout } from "@/modules/auth";
 import { SchoolIcon, PlusIcon } from "@/shared/components/Icon";
-import AccountMenu from "@/shared/components/AccountMenu";
 import "../styles/Schools.css";
 
 function Schools() {
@@ -64,10 +63,7 @@ function Schools() {
         <main className="schools-page">
             <header className="schools-header">
 
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                    <p className="greeting">Hola, Docente</p>
-                    <AccountMenu onLogout={handleLogout} />
-                </div>
+                <p className="greeting">Hola, Docente</p>
 
                 <h1>Mis Escuelas</h1>
                 <p className="description">Seleccione una institución para continuar.</p>

@@ -338,3 +338,415 @@
     grid-template-columns: repeat(3, minmax(150px, 1fr));
   }
 }
+
+
+/* Sección nominal de alumnos en CourseDetail (HU-06) */
+.course-students-section {
+  margin-top: 24px;
+  border-top: 1px solid var(--border);
+  padding-top: 20px;
+}
+
+.course-students-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.course-students-header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: var(--text-h);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.course-students-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.course-students-link-action {
+  background: transparent;
+  border: none;
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.course-students-link-action:hover {
+  text-decoration: underline;
+}
+
+.btn-enroll-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 150ms ease;
+}
+
+.btn-enroll-inline:hover {
+  opacity: 0.9;
+}
+
+.course-students-preview-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.course-student-preview-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  padding: 10px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: border-color 150ms ease, background 150ms ease;
+  text-decoration: none;
+}
+
+.course-student-preview-item:hover {
+  border-color: var(--accent);
+  background: var(--surface);
+}
+
+.course-student-preview-item h4 {
+  margin: 0 0 2px;
+  font-size: 0.95rem;
+  color: var(--text-h);
+}
+
+.course-student-preview-item p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--text);
+}
+
+.course-student-arrow {
+  color: var(--accent);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+
+/* =========================================================================
+   #337 HU-31: Dashboard del Curso - Alertas y Métricas Mobile-First
+   ========================================================================= */
+
+/* Alertas del Dashboard */
+.course-alerts-container {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--danger);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-top: 16px;
+  box-shadow: var(--shadow-soft);
+}
+
+.course-alerts-container.alerts-empty {
+  border-left: 4px solid var(--accent);
+  background: var(--bg);
+}
+
+.alerts-empty-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.alerts-empty-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--accent-light);
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.alerts-empty-box strong {
+  color: var(--text-h);
+  font-size: 0.95rem;
+}
+
+.alerts-empty-box p {
+  color: var(--text);
+  font-size: 0.85rem;
+  margin: 2px 0 0;
+}
+
+.course-alerts-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.alerts-title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.alerts-title-group h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--text-h);
+}
+
+.alerts-warning-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--danger);
+  background: rgba(200, 76, 85, 0.1);
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.alerts-critical-pill {
+  background: var(--danger);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.course-alerts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.course-alert-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: all 160ms ease;
+}
+
+.course-alert-item:hover {
+  border-color: var(--accent);
+  background: var(--surface);
+}
+
+.alert-severity-critico {
+  border-left: 3px solid var(--danger);
+}
+
+.alert-severity-alto {
+  border-left: 3px solid #d97706;
+}
+
+.alert-severity-medio {
+  border-left: 3px solid #64748b;
+}
+
+.alert-item-content {
+  flex: 1;
+}
+
+.alert-item-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 2px;
+}
+
+.alert-badge {
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.alert-badge-critico {
+  background: rgba(200, 76, 85, 0.15);
+  color: var(--danger);
+}
+
+.alert-badge-alto {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.alert-badge-medio {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.alert-type-tag {
+  font-size: 0.7rem;
+  color: var(--text);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.alert-item-title {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text-h);
+}
+
+.alert-item-desc {
+  margin: 2px 0 0;
+  font-size: 0.82rem;
+  color: var(--text);
+}
+
+.alert-arrow {
+  color: var(--accent);
+  font-size: 1.1rem;
+  padding-left: 8px;
+}
+
+.btn-toggle-alerts {
+  background: transparent;
+  border: none;
+  color: var(--accent);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 8px;
+  padding: 4px 0;
+  display: block;
+}
+
+/* Grilla de Métricas del Curso */
+.course-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 18px;
+}
+
+@media (min-width: 640px) {
+  .course-metrics-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.course-metric-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  box-shadow: var(--shadow-soft);
+  cursor: pointer;
+  transition: all 160ms ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.course-metric-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.metric-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.metric-icon {
+  color: var(--accent);
+  font-size: 1.1rem;
+}
+
+.metric-tag {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text);
+  letter-spacing: 0.04em;
+}
+
+.metric-value {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--text-h);
+  line-height: 1.1;
+}
+
+.metric-value-text {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-h);
+}
+
+.metric-hint {
+  font-size: 0.78rem;
+  color: var(--text);
+  margin-top: 4px;
+}
+
+.metric-hint.truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.metric-good .metric-value {
+  color: var(--accent);
+}
+
+.metric-warning .metric-value {
+  color: #d97706;
+}
+
+.metric-danger .metric-value {
+  color: var(--danger);
+}
+
+.metric-neutral .metric-value {
+  color: var(--text-h);
+}
+
+@media (max-width: 639px) {
+  .metric-full-mobile {
+    grid-column: span 2;
+  }
+}

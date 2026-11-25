@@ -1,12 +1,18 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { getSchoolById } from "../services/schoolService";
-import { CourseIcon, StudentIcon, CheckIcon, EditIcon, ArrowLeftIcon } from "@/shared/components/Icon";
+import { CourseIcon, StudentIcon, CheckIcon, EditIcon } from "@/shared/components/Icon";
 import "../styles/SchoolDashboard.css";
 
 function SchoolDashboard() {
     const { id } = useParams();
     const navigate = useNavigate();
+
+    function openCourseModule(module) {
+        navigate(`/escuelas/${id}/cursos`, {
+            state: { courseModule: module },
+        });
+    }
 
     const [school, setSchool] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -45,9 +51,6 @@ function SchoolDashboard() {
                     <p className="dashboard-city">
                         La institución solicitada no existe o no tenés permiso para verla.
                     </p>
-                    <button onClick={() => navigate("/escuelas")}>
-                        <ArrowLeftIcon /> Volver a mis escuelas
-                    </button>
                 </header>
             </main>
         );
@@ -100,7 +103,10 @@ function SchoolDashboard() {
                     →
                 </button>
 
-                <button className="dashboard-option">
+                <button
+                    className="dashboard-option"
+                    onClick={() => openCourseModule("alumnos")}
+                >
                     <span>
                         <strong><StudentIcon /> Alumnos</strong>
                         <small>Consultar alumnos</small>
@@ -108,7 +114,10 @@ function SchoolDashboard() {
                     →
                 </button>
 
-                <button className="dashboard-option">
+                <button
+                    className="dashboard-option"
+                    onClick={() => openCourseModule("asistencia")}
+                >
                     <span>
                         <strong><CheckIcon /> Asistencia</strong>
                         <small>Registrar asistencia</small>
@@ -116,7 +125,10 @@ function SchoolDashboard() {
                     →
                 </button>
 
-                <button className="dashboard-option">
+                <button
+                    className="dashboard-option"
+                    onClick={() => openCourseModule("evaluaciones")}
+                >
                     <span>
                         <strong><CourseIcon /> Notas</strong>
                         <small>Gestionar calificaciones</small>
@@ -133,12 +145,6 @@ function SchoolDashboard() {
                     <EditIcon /> Editar escuela
                 </button>
 
-                <button 
-                    className="delete-button"
-                    onClick={() => navigate("/escuelas")}
-                >
-                    <ArrowLeftIcon /> Volver al listado
-                </button>
             </section>
         </main>
     );

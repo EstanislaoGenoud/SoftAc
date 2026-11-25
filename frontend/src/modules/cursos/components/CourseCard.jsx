@@ -26,12 +26,21 @@ function getCourseMateria(course) {
   return null;
 }
 
-function CourseCard({ course }) {
+function CourseCard({ course, destination }) {
   const navigate = useNavigate();
   const { id } = useParams();
 
   function handleCardClick() {
-    navigate(`/escuelas/${id}/cursos/${course.id}`);
+    const coursePath = `/escuelas/${id}/cursos/${course.id}`;
+    const destinations = ["alumnos", "asistencia", "evaluaciones"];
+    const isModuleDestination = destinations.includes(destination);
+    const path = isModuleDestination ? `${coursePath}/${destination}` : coursePath;
+
+    navigate(path, {
+      state: isModuleDestination
+        ? { backToCourses: true, courseModule: destination }
+        : undefined,
+    });
   }
 
   const courseName = course.nombre || course.name || "Sin nombre";

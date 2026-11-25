@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { getSchoolById, updateSchool } from "../services/schoolService";
-import { SaveIcon, ArrowLeftIcon } from "@/shared/components/Icon";
+import { SaveIcon } from "@/shared/components/Icon";
 import "../styles/EditSchool.css";
 
 function EditSchool() {
@@ -35,9 +35,6 @@ function EditSchool() {
     return (
       <main>
         <h1>Escuela no encontrada</h1>
-        <button onClick={() => navigate("/escuelas")}>
-          <ArrowLeftIcon /> Volver a mis escuelas
-        </button>
       </main>
     );
   }

@@ -1,14 +1,11 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import "../styles/ForgotPassword.css";
-import { ArrowLeftIcon, PlusIcon } from "@/shared/components/Icon";
+import { PlusIcon } from "@/shared/components/Icon";
 
 function ForgotPassword() {
 
     const [email, setEmail] = useState("");
     const [message, setMessage] = useState("");
-
-    const navigate = useNavigate();
 
     function handleSubmit(event) {
         event.preventDefault();
@@ -60,14 +57,6 @@ function ForgotPassword() {
                         {message}
                     </p>
                 )}
-
-                <button
-                    type="button"
-                    className="back-login-button"
-                    onClick={() => navigate("/login")}
-                >
-                    <ArrowLeftIcon /> Volver al Login
-                </button>
 
             </section>
 

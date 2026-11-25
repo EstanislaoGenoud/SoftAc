@@ -116,8 +116,7 @@
     margin-top: 2rem;
 }
 
-.edit-button,
-.delete-button {
+.edit-button {
     width: 100%;
     border: 0;
     border-radius: 6px;
@@ -129,11 +128,6 @@
 .edit-button {
     background: var(--accent);
     color: #ffffff;
-}
-
-.delete-button {
-    background: #fff0ef;
-    color: var(--danger);
 }
 
 @media (min-width: 601px) {
@@ -150,8 +144,7 @@
         justify-content: flex-start;
     }
 
-    .edit-button,
-    .delete-button {
+    .edit-button {
         width: auto;
     }
 }

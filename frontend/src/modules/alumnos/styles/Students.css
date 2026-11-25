@@ -25,25 +25,6 @@
   border-bottom: 1px solid var(--border);
 }
 
-.students-back-button {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  width: fit-content;
-  margin-bottom: 1rem;
-  padding: 8px 4px;
-  border: 0;
-  background: transparent;
-  color: var(--text);
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.students-back-button:hover {
-  color: var(--accent);
-}
-
 .students-kicker {
   display: inline-block;
   margin-bottom: 10px;
@@ -179,4 +160,401 @@
 .students-pagination button:disabled {
   opacity: 0.45;
   cursor: not-allowed;
+}
+
+
+.students-actions-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 16px 0 12px;
+}
+
+.students-add-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 18px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 120ms ease, opacity 180ms ease, box-shadow 180ms ease;
+  box-shadow: 0 4px 12px rgba(8, 127, 123, 0.2);
+  width: 100%;
+}
+
+@media (min-width: 480px) {
+  .students-add-button {
+    width: auto;
+  }
+}
+
+.students-add-button:hover {
+  opacity: 0.92;
+  transform: translateY(-1px);
+}
+
+.students-add-button:active {
+  transform: translateY(0);
+}
+
+/* Modal de inscripción de alumno (Mobile-First) */
+.class-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 1000;
+  animation: fadeIn 180ms ease;
+}
+
+.class-modal-card {
+  width: min(100%, 480px);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  padding: 24px;
+  box-sizing: border-box;
+  animation: slideUp 200ms ease;
+}
+
+.class-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 14px;
+}
+
+.class-modal-header h2 {
+  margin: 4px 0 0;
+  font-size: 20px;
+  color: var(--text-h);
+}
+
+.class-modal-kicker {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--accent);
+  letter-spacing: 0.05em;
+}
+
+.class-modal-close {
+  background: transparent;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: var(--text);
+  padding: 4px;
+  border-radius: 6px;
+  transition: color 150ms ease;
+}
+
+.class-modal-close:hover {
+  color: var(--danger);
+}
+
+.class-modal-error {
+  padding: 10px 14px;
+  background: #fff0ef;
+  border: 1px solid #fecdd3;
+  color: var(--danger);
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 14px;
+}
+
+.class-modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.class-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+}
+
+.class-form-group label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-h);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.class-form-group input,
+.class-form-group select,
+.class-form-group textarea {
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text-h);
+  font: inherit;
+  font-size: 14px;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.class-form-group input:focus,
+.class-form-group select:focus,
+.class-form-group textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(8, 127, 123, 0.15);
+}
+
+.class-modal-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.class-btn-cancel {
+  padding: 10px 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text);
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.class-btn-cancel:hover {
+  background: var(--bg);
+}
+
+.class-btn-submit {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 150ms ease;
+}
+
+.class-btn-submit:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.class-btn-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+
+/* =========================================================================
+   #350 HU-32: Resumen Visual y Ficha Integral del Alumno
+   ========================================================================= */
+
+.student-visual-summary {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+  margin-top: 16px;
+  box-shadow: var(--shadow-soft);
+}
+
+.visual-summary-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+}
+
+.visual-summary-kicker {
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--accent);
+  letter-spacing: 0.05em;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.visual-summary-title {
+  margin: 0;
+  font-size: 1.15rem;
+  color: var(--text-h);
+}
+
+.standing-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.standing-destacado {
+  background: var(--accent-light);
+  color: var(--accent);
+  border: 1px solid var(--accent-border);
+}
+
+.standing-regular {
+  background: #f1f5f9;
+  color: var(--text-h);
+  border: 1px solid var(--border);
+}
+
+.standing-en-riesgo {
+  background: rgba(200, 76, 85, 0.12);
+  color: var(--danger);
+  border: 1px solid var(--danger);
+}
+
+.student-alert-box {
+  background: rgba(200, 76, 85, 0.08);
+  border: 1px solid var(--danger);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-top: 12px;
+  color: var(--danger);
+  font-size: 0.88rem;
+}
+
+.student-alert-box strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.student-alert-box ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.visual-metrics-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+@media (min-width: 600px) {
+  .visual-metrics-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.visual-metric-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.visual-metric-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.visual-metric-icon {
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+}
+
+.visual-metric-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text);
+  text-transform: uppercase;
+}
+
+.visual-metric-num {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text-h);
+  line-height: 1.1;
+  margin-bottom: 8px;
+}
+
+.progress-bar-container {
+  width: 100%;
+  height: 8px;
+  background: var(--border);
+  border-radius: 999px;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 240ms ease;
+}
+
+.progress-marker-75 {
+  position: absolute;
+  left: 75%;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: rgba(15, 23, 42, 0.4);
+  z-index: 2;
+}
+
+.fill-good {
+  background: var(--accent);
+}
+
+.fill-warning {
+  background: #d97706;
+}
+
+.fill-danger {
+  background: var(--danger);
+}
+
+.fill-neutral {
+  background: #94a3b8;
+}
+
+.visual-metric-sub {
+  font-size: 0.76rem;
+  color: var(--text);
 }

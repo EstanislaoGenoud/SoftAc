@@ -80,6 +80,14 @@ export function ArrowLeftIcon(props) {
   );
 }
 
+export function MenuIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M4 6h16M4 12h16M4 18h16" />
+    </svg>
+  );
+}
+
 export function SearchIcon(props) {
   return (
     <svg {...base} {...props}>
@@ -130,6 +138,17 @@ export function CloseIcon(props) {
   return (
     <svg {...base} {...props}>
       <path d="M18 6 6 18M6 6l12 12" />
+    </svg>
+  );
+}
+
+
+export function TaskIcon(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+      <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
+      <path d="M9 14l2 2 4-4" />
     </svg>
   );
 }
