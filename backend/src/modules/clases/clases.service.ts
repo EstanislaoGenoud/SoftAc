@@ -115,10 +115,7 @@ export class ClasesService {
       }
     }
 
-    if (!ultima) {
-      throw new NotFoundException('No se encontraron clases registradas para este curso o materia');
-    }
-
+    // Un curso sin clases es un estado válido: el cliente ofrece registrar la primera.
     return ultima;
   }
 

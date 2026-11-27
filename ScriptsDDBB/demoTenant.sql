@@ -85,29 +85,38 @@ CREATE TABLE asistencias (
     FOREIGN KEY (alumno_id) REFERENCES alumnos(id) ON DELETE RESTRICT,
     UNIQUE INDEX idx_clase_alumno (clase_id, alumno_id)
 );
-CREATE TABLE escalas_calificacion (
-    id CHAR(36) PRIMARY KEY,
-    escuela_id CHAR(36) NOT NULL,
-    nombre VARCHAR(50) NOT NULL,
-    tipo ENUM('CUANTITATIVA', 'CUALITATIVA') NOT NULL,
-    configuracion JSON NOT NULL,
-    FOREIGN KEY (escuela_id) REFERENCES escuelas(id) ON DELETE CASCADE
-);
 CREATE TABLE evaluaciones (
     id CHAR(36) PRIMARY KEY,
-    curso_materia_id CHAR(36) NOT NULL,
-    escala_calificacion_id CHAR(36) NOT NULL,
-    titulo VARCHAR(100) NOT NULL,
+    curso_id CHAR(36) NOT NULL,
+    nombre VARCHAR(120) NOT NULL,
+    tipo ENUM('Examen', 'Trabajo práctico', 'Oral', 'Recuperatorio') NOT NULL,
     fecha DATE NOT NULL,
-    FOREIGN KEY (curso_materia_id) REFERENCES cursos_materias(id) ON DELETE RESTRICT,
-    FOREIGN KEY (escala_calificacion_id) REFERENCES escalas_calificacion(id) ON DELETE RESTRICT
+    descripcion TEXT NULL,
+    ponderacion DECIMAL(5,2) NOT NULL DEFAULT 0,
+    evaluacion_original_id CHAR(36) NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (curso_id) REFERENCES cursos(id) ON DELETE CASCADE,
+    FOREIGN KEY (evaluacion_original_id) REFERENCES evaluaciones(id) ON DELETE SET NULL,
+    INDEX idx_evaluaciones_curso_fecha (curso_id, fecha)
 );
 CREATE TABLE calificaciones (
     id CHAR(36) PRIMARY KEY,
     evaluacion_id CHAR(36) NOT NULL,
-    inscripcion_id CHAR(36) NOT NULL,
-    valor_obtenido VARCHAR(10) NOT NULL,
+    alumno_id CHAR(36) NOT NULL,
+    modelo ENUM('cuantitativo', 'cualitativo') NOT NULL,
+    valor_numerico DECIMAL(4,2) NULL,
+    valor_conceptual VARCHAR(30) NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (evaluacion_id) REFERENCES evaluaciones(id) ON DELETE CASCADE,
-    FOREIGN KEY (inscripcion_id) REFERENCES inscripciones(id) ON DELETE RESTRICT,
-    UNIQUE INDEX idx_evaluacion_inscripcion (evaluacion_id, inscripcion_id)
+    FOREIGN KEY (alumno_id) REFERENCES alumnos(id) ON DELETE RESTRICT,
+    UNIQUE INDEX uq_calificacion_evaluacion_alumno (evaluacion_id, alumno_id)
+);
+CREATE TABLE configuracion_evaluaciones (
+    curso_id CHAR(36) PRIMARY KEY,
+    modelo ENUM('cuantitativo', 'cualitativo') NOT NULL DEFAULT 'cuantitativo',
+    modo_recuperatorio ENUM('mayor', 'promedio') NOT NULL DEFAULT 'mayor',
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (curso_id) REFERENCES cursos(id) ON DELETE CASCADE
 );

@@ -11,12 +11,13 @@ import { AlumnosModule } from './modules/alumnos/alumnos.module.js';
 import { HorariosModule } from './modules/horarios/horarios.module.js';
 import { ClasesModule } from './modules/clases/clases.module.js';
 import { AsistenciasModule } from './modules/asistencias/asistencias.module.js';
+import { EvaluacionesModule } from './modules/evaluaciones/evaluaciones.module.js';
 import { Usuario } from './system/users/entities/usuario.entity.js';
 import { Tenant } from './system/users/entities/tenant.entity.js';
 
 @Module({
   imports: [
-    // 🌍 ConfigModule carga automáticamente el archivo .env para proteger tus contraseñas
+    //  ConfigModule carga automáticamente el archivo .env para proteger tus contraseñas
     ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRoot({
       type: 'mysql',
@@ -26,7 +27,9 @@ import { Tenant } from './system/users/entities/tenant.entity.js';
       password: process.env.DB_PASSWORD || '',
       database: 'sistema_db',
       entities: [Usuario, Tenant],
-      synchronize: false, 
+      // Crear usuarios y tenants automáticamente en desarrollo local.
+      // En producción se deben desplegar mediante migraciones.
+      synchronize: process.env.NODE_ENV !== 'production' && process.env.DB_SYNCHRONIZE !== 'false',
     }),
     TenantModule,
     AuthModule,
@@ -35,7 +38,8 @@ import { Tenant } from './system/users/entities/tenant.entity.js';
     AlumnosModule,
     HorariosModule,
     ClasesModule,
-    AsistenciasModule
+    AsistenciasModule,
+    EvaluacionesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
