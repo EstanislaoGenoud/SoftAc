@@ -9,13 +9,7 @@ import {
   getAttendancePercentagesByCourse
 } from "@/modules/asistencias/services/attendanceService";
 import { getStudentsByCourse, CreateStudentModal } from "@/modules/alumnos";
-import {
-  getEvaluacionesByCurso,
-  getCalificacionesByEvaluacion,
-  calculateStudentAverage,
-  getRecoveryConfigMock,
-  getGradingConfigMock
-} from "@/modules/evaluaciones/services/evaluacionMockService";
+import { getResumenAcademicoCurso } from "@/modules/evaluaciones/services/evaluacionService";
 import {
   getTrabajosNoEntregadosByCurso,
   saveEntrega
@@ -133,29 +127,9 @@ function CourseDetail() {
       // 5. Cargar calificaciones y calcular promedio académico general
       let avgList = [];
       try {
-        const evaluations = await getEvaluacionesByCurso(courseId).catch(() => []);
-        if (evaluations.length > 0 && loadedStudents.length > 0) {
-          const gradingConfig = getGradingConfigMock();
-          const recoveryConfig = getRecoveryConfigMock(courseId);
-
-          const gradeEntries = await Promise.all(
-            evaluations.map(async (ev) => [ev.id, await getCalificacionesByEvaluacion(ev.id).catch(() => ({}))])
-          );
-          const gradesByEval = Object.fromEntries(gradeEntries);
-
-          avgList = loadedStudents.map((st) => {
-            const res = calculateStudentAverage(
-              st.id,
-              evaluations,
-              gradesByEval,
-              recoveryConfig?.modo,
-              gradingConfig?.modelo
-            );
-            return {
-              studentId: String(st.id),
-              average: res.average
-            };
-          });
+        const resumen = await getResumenAcademicoCurso(courseId, loadedStudents.map((st) => st.id));
+        if (resumen.evaluations.length > 0 && loadedStudents.length > 0) {
+          avgList = resumen.averages.map(({ studentId, average }) => ({ studentId, average }));
 
           const courseAvg = calculateCourseAcademicAverage(avgList);
           if (active) {

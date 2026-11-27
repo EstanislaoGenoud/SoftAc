@@ -1,17 +1,37 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { coursesData } from "@/modules/cursos";
-import { studentsData } from "@/modules/alumnos";
+import { coursesData, getCourseById } from "@/modules/cursos";
+import { getStudentsByCourse, normalizeStudent, studentsData } from "@/modules/alumnos";
 import { PlusIcon } from "@/shared/components/Icon";
-import { calculateStudentAverage, createEvaluacionMock, getCalificacionesByEvaluacion, getEvaluacionesByCurso, getGradingConfigMock, getRecoveryConfigMock, MOCK_EVALUATION_TYPES, MOCK_GRADING_CATEGORIES, numericToQualitative, RECOVERY_MODES, saveCalificacionesMock, saveGradingConfigMock, saveRecoveryConfigMock } from "../services/evaluacionMockService";
+import {
+  calculateStudentAverage,
+  createEvaluacion,
+  EVALUATION_TYPES,
+  getCalificacionesByEvaluacion,
+  getConfiguracionEvaluacion,
+  getEvaluacionesByCurso,
+  GRADING_CATEGORIES,
+  numericToQualitative,
+  RECOVERY_MODES,
+  RECOVERY_TYPE,
+  saveCalificaciones,
+  saveConfiguracionEvaluacion
+} from "../services/evaluacionService";
 import "../styles/Evaluations.css";
 
 const initialForm = { nombre: "", fecha: "", tipo: "", evaluacionOriginalId: "", ponderacion: "0", descripcion: "" };
+const defaultConfig = { modelo: "cuantitativo", modoRecuperatorio: RECOVERY_MODES.MAYOR };
+
+function localStudentsFor(courseId) {
+  return studentsData
+    .filter((student) => String(student.courseId) === String(courseId))
+    .map(normalizeStudent);
+}
 
 function Evaluations() {
   const { courseId } = useParams();
-  const course = coursesData.find((item) => String(item.id) === String(courseId));
-  const courseStudents = studentsData.filter((student) => String(student.courseId) === String(courseId));
+  const [course, setCourse] = useState(() => coursesData.find((item) => String(item.id) === String(courseId)) || null);
+  const [courseStudents, setCourseStudents] = useState([]);
   const [evaluations, setEvaluations] = useState([]);
   const [form, setForm] = useState(initialForm);
   const [loading, setLoading] = useState(true);
@@ -23,16 +43,22 @@ function Evaluations() {
   const [gradesLoading, setGradesLoading] = useState(false);
   const [gradesSaving, setGradesSaving] = useState(false);
   const [gradesMessage, setGradesMessage] = useState("");
-  const [gradingConfig, setGradingConfig] = useState(getGradingConfigMock);
-  const [recoveryConfig, setRecoveryConfig] = useState(() => getRecoveryConfigMock(courseId));
+  const [gradesError, setGradesError] = useState("");
+  const [config, setConfig] = useState(defaultConfig);
+  const [configMessage, setConfigMessage] = useState("");
   const [gradesByEvaluation, setGradesByEvaluation] = useState({});
-  const [selectedStudentId, setSelectedStudentId] = useState(() => String(courseStudents[0]?.id || ""));
+  const [selectedStudentId, setSelectedStudentId] = useState("");
   const [periodFilter, setPeriodFilter] = useState("year");
   const [customFrom, setCustomFrom] = useState("");
   const [customTo, setCustomTo] = useState("");
 
+  const gradingConfig = { modelo: config.modelo };
+  const recoveryConfig = { modo: config.modoRecuperatorio };
+  const isRecoveryForm = form.tipo === RECOVERY_TYPE;
   const selectedEvaluation = evaluations.find((evaluation) => evaluation.id === selectedEvaluationId);
-  const weightingTotal = Math.round(evaluations.reduce((total, evaluation) => total + Number(evaluation.ponderacion || 0), 0) * 100) / 100;
+  const weightingTotal = Math.round(evaluations
+    .filter((evaluation) => evaluation.tipo !== RECOVERY_TYPE)
+    .reduce((total, evaluation) => total + Number(evaluation.ponderacion || 0), 0) * 100) / 100;
   const studentAverages = courseStudents.map((student) => ({
     student,
     result: calculateStudentAverage(student.id, evaluations, gradesByEvaluation, recoveryConfig.modo, gradingConfig.modelo)
@@ -67,19 +93,44 @@ function Evaluations() {
     .filter((item) => item.value !== undefined && item.value !== "")
     .sort((a, b) => String(a.evaluation.fecha).localeCompare(String(b.evaluation.fecha)));
 
-  const evolutionMax = gradingConfig.modelo === "cualitativo" ? 10 : 10;
+  const evolutionMax = 10;
+
+  useEffect(() => {
+    let active = true;
+    getCourseById(courseId)
+      .then((data) => { if (active && data) setCourse(data); })
+      .catch(() => {});
+    getStudentsByCourse(courseId)
+      .then((data) => {
+        const apiStudents = Array.isArray(data) ? data.map(normalizeStudent) : [];
+        if (active) setCourseStudents(apiStudents.length > 0 ? apiStudents : localStudentsFor(courseId));
+      })
+      .catch(() => { if (active) setCourseStudents(localStudentsFor(courseId)); });
+    return () => { active = false; };
+  }, [courseId]);
+
+  useEffect(() => {
+    if (!courseStudents.some((student) => student.id === selectedStudentId)) {
+      setSelectedStudentId(courseStudents[0]?.id || "");
+    }
+  }, [courseStudents, selectedStudentId]);
 
   useEffect(() => {
     let active = true;
     async function loadEvaluations() {
+      setLoading(true);
       try {
-        const data = await getEvaluacionesByCurso(courseId);
+        const [data, courseConfig] = await Promise.all([
+          getEvaluacionesByCurso(courseId),
+          getConfiguracionEvaluacion(courseId)
+        ]);
         if (!active) return;
         setEvaluations(data);
-        const gradeEntries = await Promise.all(data.map(async (evaluation) => [evaluation.id, await getCalificacionesByEvaluacion(evaluation.id)]));
+        setConfig(courseConfig);
+        const gradeEntries = await Promise.all(data.map(async (evaluation) => [evaluation.id, await getCalificacionesByEvaluacion(evaluation.id).catch(() => ({}))]));
         if (active) setGradesByEvaluation(Object.fromEntries(gradeEntries));
-      } catch {
-        if (active) setError("No se pudieron cargar las evaluaciones.");
+      } catch (loadError) {
+        if (active) setError(loadError.message || "No se pudieron cargar las evaluaciones.");
       } finally {
         if (active) setLoading(false);
       }
@@ -89,7 +140,12 @@ function Evaluations() {
   }, [courseId]);
 
   function updateField(event) {
-    setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
+    const { name, value } = event.target;
+    setForm((current) => ({
+      ...current,
+      [name]: value,
+      ...(name === "tipo" && value === RECOVERY_TYPE ? { ponderacion: "0" } : {})
+    }));
     setError("");
     setSuccess("");
   }
@@ -97,9 +153,13 @@ function Evaluations() {
   async function selectEvaluation(evaluationId) {
     setSelectedEvaluationId(evaluationId);
     setGradesMessage("");
+    setGradesError("");
     setGradesLoading(true);
     try {
       setGrades(await getCalificacionesByEvaluacion(evaluationId));
+    } catch (loadError) {
+      setGrades({});
+      setGradesError(loadError.message || "No se pudieron cargar las notas.");
     } finally {
       setGradesLoading(false);
     }
@@ -107,21 +167,31 @@ function Evaluations() {
 
   function updateGrade(studentId, value) {
     setGradesMessage("");
+    setGradesError("");
     setGrades((current) => ({ ...current, [studentId]: value }));
   }
 
+  async function updateConfig(changes, message) {
+    const previous = config;
+    setConfig((current) => ({ ...current, ...changes }));
+    setConfigMessage("");
+    try {
+      setConfig(await saveConfiguracionEvaluacion(courseId, changes));
+      setConfigMessage(message);
+    } catch (saveError) {
+      setConfig(previous);
+      setConfigMessage(saveError.message || "No se pudo guardar la configuración.");
+    }
+  }
+
   function updateGradingModel(event) {
-    const nextConfig = { ...gradingConfig, modelo: event.target.value };
-    setGradingConfig(nextConfig);
-    saveGradingConfigMock(nextConfig);
     setGrades({});
-    setGradesMessage("Modelo actualizado. Las nuevas notas usarán este formato.");
+    setGradesMessage("");
+    updateConfig({ modelo: event.target.value }, "Modelo actualizado. Las nuevas notas usarán este formato.");
   }
 
   function updateRecoveryMode(event) {
-    const nextConfig = { modo: event.target.value };
-    setRecoveryConfig(nextConfig);
-    saveRecoveryConfigMock(courseId, nextConfig);
+    updateConfig({ modoRecuperatorio: event.target.value }, "Regla de recuperatorio actualizada.");
   }
 
   async function handleSaveGrades(event) {
@@ -129,12 +199,25 @@ function Evaluations() {
     if (!selectedEvaluationId || gradesSaving) return;
     setGradesSaving(true);
     setGradesMessage("");
-    const result = await saveCalificacionesMock(selectedEvaluationId, grades, gradingConfig.modelo);
-    setGradesByEvaluation((current) => ({ ...current, [selectedEvaluationId]: grades }));
-    setGradesSaving(false);
-    setGradesMessage(result.failed.length > 0
-      ? `Se guardaron ${result.saved.length} notas y fallaron ${result.failed.length}. Revisá los valores indicados.`
-      : `Se guardaron ${result.saved.length} notas. Los campos vacíos quedaron sin calificar.`);
+    setGradesError("");
+    try {
+      const result = await saveCalificaciones(selectedEvaluationId, grades, gradingConfig.modelo);
+      const stored = await getCalificacionesByEvaluacion(selectedEvaluationId);
+      setGradesByEvaluation((current) => ({ ...current, [selectedEvaluationId]: stored }));
+      if (result.failed.length > 0) {
+        const names = result.failed
+          .map((item) => courseStudents.find((student) => student.id === item.studentId)?.name || item.studentId)
+          .join(", ");
+        setGradesError(`Se guardaron ${result.saved.length} notas. Revisá los valores de: ${names}. ${result.failed[0].reason}`);
+      } else {
+        setGrades(stored);
+        setGradesMessage(`Se guardaron ${result.saved.length} notas. Los campos vacíos quedaron sin calificar.`);
+      }
+    } catch (saveError) {
+      setGradesError(saveError.message || "No se pudieron guardar las notas.");
+    } finally {
+      setGradesSaving(false);
+    }
   }
 
   async function handleSubmit(event) {
@@ -142,31 +225,41 @@ function Evaluations() {
     if (saving) return;
     setError("");
     setSuccess("");
-    if (!form.nombre.trim() || !form.fecha || !form.tipo || form.ponderacion === "" || (form.tipo === "Recuperatorio" && !form.evaluacionOriginalId)) {
-      setError(form.tipo === "Recuperatorio"
+    if (!form.nombre.trim() || !form.fecha || !form.tipo || form.ponderacion === "" || (isRecoveryForm && !form.evaluacionOriginalId)) {
+      setError(isRecoveryForm
         ? "El nombre, la fecha y la evaluación original son obligatorios."
         : "El nombre, la fecha, el tipo y la ponderación son obligatorios.");
       return;
     }
 
-    const weight = Number(form.ponderacion);
-    const nextWeightingTotal = weightingTotal + weight;
-    if (!Number.isFinite(weight) || weight < 0 || weight > 100) {
-      setError("La ponderación debe estar entre 0% y 100%.");
-      return;
-    }
-    if (nextWeightingTotal > 100) {
-      setError(`No se puede superar el 100%. El total quedaría en ${nextWeightingTotal}%.`);
-      return;
+    if (isRecoveryForm) {
+      const original = evaluations.find((evaluation) => evaluation.id === form.evaluacionOriginalId);
+      if (original && form.fecha < original.fecha) {
+        setError("La fecha del recuperatorio no puede ser anterior a la evaluación original.");
+        return;
+      }
+    } else {
+      const weight = Number(form.ponderacion);
+      const nextWeightingTotal = Math.round((weightingTotal + weight) * 100) / 100;
+      if (!Number.isFinite(weight) || weight < 0 || weight > 100) {
+        setError("La ponderación debe estar entre 0% y 100%.");
+        return;
+      }
+      if (nextWeightingTotal > 100) {
+        setError(`No se puede superar el 100%. El total quedaría en ${nextWeightingTotal}%.`);
+        return;
+      }
     }
 
     setSaving(true);
     try {
-      const created = await createEvaluacionMock({ ...form, courseId });
+      const created = await createEvaluacion({ ...form, courseId });
       setEvaluations((current) => [created, ...current]);
       setGradesByEvaluation((current) => ({ ...current, [created.id]: {} }));
       setForm(initialForm);
-      setSuccess("Evaluación creada correctamente. Se guardó como mock local.");
+      setSuccess(created._isMock
+        ? "Evaluación guardada localmente: el servidor no está disponible."
+        : "Evaluación creada correctamente.");
     } catch (submissionError) {
       setError(submissionError.message || "No se pudo crear la evaluación.");
     } finally {
@@ -179,15 +272,15 @@ function Evaluations() {
       <section className="evaluations-card">
         <header className="evaluations-header">
           <span className="evaluations-kicker">Evaluaciones</span>
-          <h1>{course?.name || "Curso"}</h1>
+          <h1>{course?.nombre || course?.name || "Curso"}</h1>
           <p>Creá una evaluación para organizar las próximas calificaciones.</p>
         </header>
 
         <section className="grading-config" aria-labelledby="grading-config-title">
           <div>
-            <span className="evaluations-kicker">Configuración mock</span>
+            <span className="evaluations-kicker">Configuración del curso</span>
             <h2 id="grading-config-title">Modelo de calificación</h2>
-            <p>Configuración temporal del sistema para este entorno frontend.</p>
+            <p>Se aplica a todas las evaluaciones de este curso.</p>
           </div>
           <label htmlFor="grading-model">Modelo</label>
           <select id="grading-model" value={gradingConfig.modelo} onChange={updateGradingModel}>
@@ -197,6 +290,7 @@ function Evaluations() {
           {gradingConfig.modelo === "cualitativo" && (
             <p className="grading-equivalence">Equivalencia de cálculo: Muy bueno = 10, Bueno = 8, Regular = 6, Insuficiente = 3.</p>
           )}
+          {configMessage && <p className="evaluation-message evaluation-message-success" role="status">{configMessage}</p>}
         </section>
 
         <form className="evaluation-form" onSubmit={handleSubmit}>
@@ -204,24 +298,26 @@ function Evaluations() {
             <label htmlFor="evaluation-name">Nombre de la evaluación *</label>
             <input id="evaluation-name" name="nombre" value={form.nombre} onChange={updateField} placeholder="Ej: Examen de fracciones" required />
           </div>
-          {form.tipo === "Recuperatorio" && (
+          {isRecoveryForm && (
             <div className="evaluation-field">
               <label htmlFor="original-evaluation">Evaluación original *</label>
               <select id="original-evaluation" name="evaluacionOriginalId" value={form.evaluacionOriginalId} onChange={updateField} required>
                 <option value="">Seleccionar evaluación original</option>
-                {evaluations.filter((evaluation) => evaluation.tipo !== "Recuperatorio").map((evaluation) => (
+                {evaluations.filter((evaluation) => evaluation.tipo !== RECOVERY_TYPE).map((evaluation) => (
                   <option key={evaluation.id} value={evaluation.id}>{evaluation.nombre} · {evaluation.fecha}</option>
                 ))}
               </select>
-              {evaluations.filter((evaluation) => evaluation.tipo !== "Recuperatorio").length === 0 && (
+              {evaluations.filter((evaluation) => evaluation.tipo !== RECOVERY_TYPE).length === 0 && (
                 <small className="evaluation-field-hint">Primero creá una evaluación original.</small>
               )}
             </div>
           )}
           <div className="evaluation-field">
             <label htmlFor="evaluation-weight">Ponderación (%) *</label>
-            <input id="evaluation-weight" name="ponderacion" type="number" min="0" max="100" step="0.01" value={form.ponderacion} onChange={updateField} required />
-            <small className="evaluation-field-hint">Debe sumar 100% entre las evaluaciones que participan del promedio.</small>
+            <input id="evaluation-weight" name="ponderacion" type="number" min="0" max="100" step="0.01" value={form.ponderacion} onChange={updateField} disabled={isRecoveryForm} required />
+            <small className="evaluation-field-hint">{isRecoveryForm
+              ? "El recuperatorio no tiene ponderación propia: impacta sobre la evaluación original."
+              : "Debe sumar 100% entre las evaluaciones que participan del promedio."}</small>
           </div>
           <div className="evaluation-field">
             <label htmlFor="evaluation-date">Fecha *</label>
@@ -231,7 +327,7 @@ function Evaluations() {
             <label htmlFor="evaluation-type">Tipo de evaluación *</label>
             <select id="evaluation-type" name="tipo" value={form.tipo} onChange={updateField} required>
               <option value="">Seleccionar tipo</option>
-              {MOCK_EVALUATION_TYPES.map((type) => <option key={type} value={type}>{type}</option>)}
+              {EVALUATION_TYPES.map((type) => <option key={type} value={type}>{type}</option>)}
             </select>
           </div>
           <div className="evaluation-field">
@@ -346,7 +442,7 @@ function Evaluations() {
                 <article className={`evaluation-item ${selectedEvaluationId === evaluation.id ? "evaluation-item-selected" : ""}`} key={evaluation.id}>
                   <div>
                     <h3>{evaluation.nombre}</h3>
-                    <p>{evaluation.tipo || "Sin tipo"} · {evaluation.fecha} · {Number(evaluation.ponderacion || 0)}%</p>
+                    <p>{evaluation.tipo || "Sin tipo"} · {evaluation.fecha}{evaluation.tipo !== RECOVERY_TYPE && ` · ${Number(evaluation.ponderacion || 0)}%`}{evaluation._isMock && " · guardada localmente"}</p>
                     {evaluation.evaluacionOriginalId && (
                       <p className="recovery-reference">
                         Recupera: {evaluations.find((original) => original.id === evaluation.evaluacionOriginalId)?.nombre || "Evaluación original"}
@@ -354,7 +450,7 @@ function Evaluations() {
                     )}
                   </div>
                   {evaluation.descripcion && <p className="evaluation-description">{evaluation.descripcion}</p>}
-                  <button type="button" className="evaluation-grade-button" onClick={() => selectedEvaluationId === evaluation.id ? (setSelectedEvaluationId(""), setGradesMessage("")) : selectEvaluation(evaluation.id)}>
+                  <button type="button" className="evaluation-grade-button" onClick={() => selectedEvaluationId === evaluation.id ? (setSelectedEvaluationId(""), setGradesMessage(""), setGradesError("")) : selectEvaluation(evaluation.id)}>
                     {selectedEvaluationId === evaluation.id ? "Cerrar carga de notas" : "Cargar notas"}
                   </button>
                 </article>
@@ -375,6 +471,7 @@ function Evaluations() {
             {gradesLoading ? <p className="evaluation-empty">Cargando notas...</p> : (
               <form className="grades-form" onSubmit={handleSaveGrades}>
                 <div className="grades-list">
+                  {courseStudents.length === 0 && <p className="evaluation-empty">No hay alumnos inscriptos en este curso.</p>}
                   {courseStudents.map((student) => (
                     <div className="grade-row" key={student.id}>
                       <label htmlFor={`grade-${student.id}`}>
@@ -397,12 +494,13 @@ function Evaluations() {
                       ) : (
                         <select id={`grade-${student.id}`} value={grades[student.id] ?? ""} onChange={(event) => updateGrade(student.id, event.target.value)} aria-label={`Categoría de ${student.name}`}>
                           <option value="">Sin nota</option>
-                          {MOCK_GRADING_CATEGORIES.map((category) => <option key={category} value={category}>{category}</option>)}
+                          {GRADING_CATEGORIES.map((category) => <option key={category} value={category}>{category}</option>)}
                         </select>
                       )}
                     </div>
                   ))}
                 </div>
+                {gradesError && <p className="evaluation-message evaluation-message-error" role="alert">{gradesError}</p>}
                 {gradesMessage && <p className="evaluation-message evaluation-message-success" role="status">{gradesMessage}</p>}
                 <button type="submit" className="evaluation-submit" disabled={gradesSaving}>
                   {gradesSaving ? "Guardando notas..." : "Guardar notas"}

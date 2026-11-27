@@ -8,6 +8,17 @@ function getAuthHeaders() {
     };
 }
 
+/** Unifica alumnos de la API ({ nombre, apellido, identificacion }) y de prueba ({ name, dni }). */
+export function normalizeStudent(student) {
+    const fullName = [student.nombre, student.apellido].filter(Boolean).join(' ');
+    return {
+        ...student,
+        id: String(student.id ?? student.alumnoId),
+        name: student.name || fullName || student.nombreCompleto || 'Alumno sin nombre',
+        dni: student.dni || student.identificacion || ''
+    };
+}
+
 export async function getStudentsByCourse(cursoId) {
     const response = await fetch(`${API_URL}/alumnos/curso/${cursoId}`, {
         method: 'GET',

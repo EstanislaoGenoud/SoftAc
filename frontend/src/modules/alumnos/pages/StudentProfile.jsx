@@ -9,13 +9,7 @@ import {
   summarizeAttendance,
   ATTENDANCE_STATES
 } from "@/modules/asistencias/services/attendanceService";
-import {
-  getEvaluacionesByCurso,
-  getCalificacionesByEvaluacion,
-  calculateStudentAverage,
-  getRecoveryConfigMock,
-  getGradingConfigMock
-} from "@/modules/evaluaciones/services/evaluacionMockService";
+import { getResumenAcademicoCurso } from "@/modules/evaluaciones/services/evaluacionService";
 import {
   getTareasByCurso,
   getEntregasByTarea,
@@ -123,26 +117,10 @@ function StudentProfile() {
 
         // 3. Evaluaciones y Promedios (#350)
         try {
-          const evaluations = await getEvaluacionesByCurso(courseId).catch(() => []);
+          const { evaluations, gradesByEvaluation: gradesByEval, averages } =
+            await getResumenAcademicoCurso(courseId, [studentId]);
           if (evaluations.length > 0) {
-            const gradingConfig = getGradingConfigMock();
-            const recoveryConfig = getRecoveryConfigMock(courseId);
-
-            const gradesEntries = await Promise.all(
-              evaluations.map(async (ev) => [
-                ev.id,
-                await getCalificacionesByEvaluacion(ev.id).catch(() => ({}))
-              ])
-            );
-            const gradesByEval = Object.fromEntries(gradesEntries);
-
-            const avgResult = calculateStudentAverage(
-              studentId,
-              evaluations,
-              gradesByEval,
-              recoveryConfig?.modo,
-              gradingConfig?.modelo
-            );
+            const avgResult = averages[0];
 
             const evWithGrades = evaluations.map((ev) => {
               const rawGrade = gradesByEval[ev.id]?.[studentId];
