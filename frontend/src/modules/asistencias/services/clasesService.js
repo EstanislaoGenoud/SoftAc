@@ -98,6 +98,7 @@ export async function getUltimaClase(cursoMateriaId) {
         });
         if (response.ok) {
             const data = await response.json();
+            if (!data) return null;
             return {
                 ...data,
                 observaciones: data.observaciones || obtenerObservacionLocal(data.id) || ''
@@ -200,7 +201,8 @@ function guardarClaseLocal(cursoMateriaId, clase) {
 function obtenerClasesLocales(cursoMateriaId) {
     try {
         const key = `softac_clases_${cursoMateriaId}`;
-        return JSON.parse(localStorage.getItem(key) || '[]');
+        const list = JSON.parse(localStorage.getItem(key) || '[]');
+        return [...list].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
     } catch {
         return [];
     }

@@ -1,9 +1,15 @@
 import { useEffect, useRef, useState } from "react";
-import { LogoutIcon } from "./Icon";
+import { LogoutIcon, MenuIcon } from "./Icon";
+import { logout } from "@/modules/auth";
+import { useNavigate } from "react-router-dom";
 
-function AccountMenu({ onLogout }) {
+function AccountMenu() {
   const [open, setOpen] = useState(false);
+  const [theme, setTheme] = useState(
+    () => localStorage.getItem("theme") || "light"
+  );
   const menuRef = useRef(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -15,89 +21,50 @@ function AccountMenu({ onLogout }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+  }, [theme]);
+
   function toggleDarkMode() {
-    const root = document.documentElement;
-    const next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
-    root.setAttribute("data-theme", next);
+    const next = theme === "dark" ? "light" : "dark";
+    setTheme(next);
+    document.documentElement.setAttribute("data-theme", next);
     localStorage.setItem("theme", next);
   }
 
-  // Inicializa el tema guardado
-  useEffect(() => {
-    const saved = localStorage.getItem("theme");
-    if (saved) document.documentElement.setAttribute("data-theme", saved);
-  }, []);
+  async function handleLogout() {
+    await logout();
+    navigate("/login", { replace: true });
+  }
 
   return (
-    <div className="account-menu" ref={menuRef} style={{ position: "relative" }}>
+    <div className="account-menu" ref={menuRef}>
       <button
         type="button"
+        className="account-menu-trigger"
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-label="Menú de cuenta"
+        aria-label="Abrir menú"
         onClick={() => setOpen((v) => !v)}
-        style={{
-          padding: "0.5rem 0.9rem",
-          borderRadius: "12px",
-          border: "1px solid var(--border)",
-          background: "var(--surface)",
-          color: "var(--text-h)",
-          boxShadow: "var(--shadow-soft)",
-          font: "inherit",
-          cursor: "pointer",
-          letterSpacing: "2px",
-        }}
       >
-        ···
+        <MenuIcon />
       </button>
 
       {open && (
-        <div
-          role="menu"
-          style={{
-            position: "absolute",
-            top: "2.6rem",
-            right: 0,
-            background: "var(--surface)",
-            border: "1px solid var(--border)",
-            borderRadius: "12px",
-            boxShadow: "var(--shadow-soft)",
-            minWidth: "170px",
-            zIndex: 20,
-            overflow: "hidden",
-          }}
-        >
+        <div className="account-menu-panel" role="menu">
           <button
+            type="button"
             role="menuitem"
             onClick={toggleDarkMode}
-            style={{
-              display: "block",
-              width: "100%",
-              textAlign: "left",
-              padding: "0.65rem 0.9rem",
-              background: "transparent",
-              border: "0",
-              color: "var(--text-h)",
-              font: "inherit",
-              cursor: "pointer",
-            }}
+            className="account-menu-item"
           >
-            Modo oscuro
+            {theme === "dark" ? "Modo claro" : "Modo oscuro"}
           </button>
           <button
+            type="button"
             role="menuitem"
-            onClick={onLogout}
-            style={{
-              display: "block",
-              width: "100%",
-              textAlign: "left",
-              padding: "0.65rem 0.9rem",
-              background: "transparent",
-              border: "0",
-              color: "var(--text-h)",
-              font: "inherit",
-              cursor: "pointer",
-            }}
+            onClick={handleLogout}
+            className="account-menu-item"
           >
             <LogoutIcon /> Cerrar sesión
           </button>

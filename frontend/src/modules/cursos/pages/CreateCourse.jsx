@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { createCourse } from "../services/courseService";
 import { getSchoolById, getSchools } from "@/modules/escuelas";
-import { ArrowLeftIcon, PlusIcon } from "@/shared/components/Icon";
+import { PlusIcon } from "@/shared/components/Icon";
 import "@/modules/escuelas/styles/EditSchool.css";
 
 function CreateCourse() {
@@ -59,9 +59,6 @@ function CreateCourse() {
   return (
     <main className="edit-school-page">
       <header className="edit-school-header">
-        <button className="logout-button" onClick={() => navigate(`/escuelas/${id}/cursos`)}>
-          <ArrowLeftIcon /> Volver
-        </button>
         <h1>Crear nuevo curso</h1>
         <p>Asociando curso a: <strong>{school ? (school.nombre || school.name) : 'Cargando...'}</strong></p>
       </header>

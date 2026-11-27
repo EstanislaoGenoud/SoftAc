@@ -25,26 +25,6 @@
   border-bottom: 1px solid var(--border);
 }
 
-.attendance-back-button {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  width: fit-content;
-  margin: 0 0 18px;
-  padding: 7px 0;
-  border: 0;
-  background: transparent;
-  color: var(--accent);
-  cursor: pointer;
-  font: inherit;
-  font-size: .9rem;
-  font-weight: 700;
-}
-
-.attendance-back-button:hover {
-  text-decoration: underline;
-}
-
 .attendance-kicker {
   display: block;
   margin-bottom: 8px;

@@ -1,4 +1,5 @@
 import { Navigate } from "react-router-dom";
+import AppNavbar from "@/shared/components/AppNavbar";
 
 function ProtectedRoute({ children }) {
     const isLoggedIn = localStorage.getItem("isLoggedIn");
@@ -7,7 +8,12 @@ function ProtectedRoute({ children }) {
         return <Navigate to="/login" replace/>;
     }
 
-    return children;
+    return (
+        <>
+            <AppNavbar />
+            {children}
+        </>
+    );
 }
 
 export default ProtectedRoute;

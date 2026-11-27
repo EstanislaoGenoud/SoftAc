@@ -1,11 +1,28 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+
+// Polyfill de localStorage para entorno Node.js
+if (!globalThis.localStorage) {
+  const store = new Map();
+  globalThis.localStorage = {
+    getItem: (key) => store.get(key) ?? null,
+    setItem: (key, val) => store.set(key, String(val)),
+    removeItem: (key) => store.delete(key),
+    clear: () => store.clear(),
+    key: (i) => Array.from(store.keys())[i] || null,
+    get length() { return store.size; }
+  };
+}
+
 import {
   ATTENDANCE_STATES,
   attendanceValue,
   calculateAttendancePercentage,
   isStudentAtRisk,
-  summarizeAttendance
+  summarizeAttendance,
+  getStudentRecords,
+  saveAttendance,
+  getAttendance
 } from "../src/modules/asistencias/services/attendanceService.js";
 
 const record = (estado) => ({ estado });
@@ -61,4 +78,61 @@ test("el resumen cuenta todos los estados", () => {
     total: 3,
     porcentaje: 50
   });
+});
+
+// HU-13: Probar múltiples clases
+test("HU-13: getStudentRecords recupera el historial de un alumno a través de múltiples clases", () => {
+  const attendanceByClass = {
+    "clase-1": {
+      "alumno-1": { alumnoId: "alumno-1", estado: ATTENDANCE_STATES.PRESENTE, fecha: "2026-03-01" },
+      "alumno-2": { alumnoId: "alumno-2", estado: ATTENDANCE_STATES.AUSENTE, fecha: "2026-03-01" }
+    },
+    "clase-2": {
+      "alumno-1": { alumnoId: "alumno-1", estado: ATTENDANCE_STATES.MEDIA_FALTA, fecha: "2026-03-08" },
+      "alumno-2": { alumnoId: "alumno-2", estado: ATTENDANCE_STATES.PRESENTE, fecha: "2026-03-08" }
+    },
+    "clase-3": {
+      "alumno-1": { alumnoId: "alumno-1", estado: ATTENDANCE_STATES.AUSENTE_CON_CERTIFICADO, fecha: "2026-03-15" }
+    }
+  };
+
+  const recordsAlumno1 = getStudentRecords("alumno-1", attendanceByClass);
+  assert.equal(recordsAlumno1.length, 3);
+  assert.equal(recordsAlumno1[0].estado, ATTENDANCE_STATES.PRESENTE);
+  assert.equal(recordsAlumno1[1].estado, ATTENDANCE_STATES.MEDIA_FALTA);
+  assert.equal(recordsAlumno1[2].estado, ATTENDANCE_STATES.AUSENTE_CON_CERTIFICADO);
+
+  const percentage = calculateAttendancePercentage(recordsAlumno1);
+  // (1 + 0.5 + 1) / 3 = 2.5 / 3 = 83.33% -> 83%
+  assert.equal(percentage, 83);
+});
+
+// HU-14: Modificar asistencia
+test("HU-14: saveAttendance permite modificar el estado de asistencia de un alumno y persiste el cambio", async () => {
+  globalThis.localStorage.clear();
+
+  const claseId = "clase-modificar-test";
+  const registrosIniciales = {
+    "alumno-10": { alumnoId: "alumno-10", estado: ATTENDANCE_STATES.AUSENTE, observacion: "" }
+  };
+
+  // Guardado inicial como AUSENTE
+  await saveAttendance(claseId, registrosIniciales);
+  let guardado = await getAttendance(claseId);
+  assert.equal(guardado["alumno-10"].estado, ATTENDANCE_STATES.AUSENTE);
+
+  // Modificación a JUSTIFICADA (AUSENTE_CON_CERTIFICADO) con observación
+  const registrosModificados = {
+    "alumno-10": {
+      alumnoId: "alumno-10",
+      estado: ATTENDANCE_STATES.AUSENTE_CON_CERTIFICADO,
+      observacion: "Presentó certificado médico en secretaría"
+    }
+  };
+
+  await saveAttendance(claseId, registrosModificados);
+  guardado = await getAttendance(claseId);
+
+  assert.equal(guardado["alumno-10"].estado, ATTENDANCE_STATES.AUSENTE_CON_CERTIFICADO);
+  assert.equal(guardado["alumno-10"].observacion, "Presentó certificado médico en secretaría");
 });

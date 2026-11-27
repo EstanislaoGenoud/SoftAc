@@ -4,27 +4,33 @@ import SchoolCard from "../components/SchoolCard";
 import { getSchools, deleteSchool } from "../services/schoolService";
 import { logout } from "@/modules/auth";
 import { SchoolIcon, PlusIcon } from "@/shared/components/Icon";
-import AccountMenu from "@/shared/components/AccountMenu";
 import "../styles/Schools.css";
 
 function Schools() {
     const navigate = useNavigate();
     const [schoolList, setSchoolList] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [loadError, setLoadError] = useState("");
+
+    async function fetchSchools() {
+        setLoading(true);
+        setLoadError("");
+        try {
+            const schoolsFromService = await getSchools();
+            setSchoolList(schoolsFromService);
+        } catch (error) {
+            console.error("Error cargando escuelas:", error);
+            setLoadError(error.message);
+            if (error.status === 401) {
+                await handleLogout();
+            }
+        } finally {
+            setLoading(false);
+        }
+
+    }
 
     useEffect(() => {
-        async function fetchSchools() {
-            try {
-                const schoolsFromService = await getSchools();
-                setSchoolList(schoolsFromService);
-            } catch (error) {
-                console.error("Error cargando escuelas:", error);
-                handleLogout();
-            } finally {
-                setLoading(false);
-            }
-        }
-        
         fetchSchools();
     }, []);
 
@@ -44,14 +50,20 @@ function Schools() {
 
     if (loading) return <p>Cargando escuelas...</p>;
 
+    if (loadError) {
+        return (
+            <main className="schools-page">
+                <p role="alert">No se pudieron cargar las escuelas: {loadError}</p>
+                <button onClick={fetchSchools}>Reintentar</button>
+            </main>
+        );
+    }
+
     return (
         <main className="schools-page">
             <header className="schools-header">
 
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                    <p className="greeting">Hola, Docente</p>
-                    <AccountMenu onLogout={handleLogout} />
-                </div>
+                <p className="greeting">Hola, Docente</p>
 
                 <h1>Mis Escuelas</h1>
                 <p className="description">Seleccione una institución para continuar.</p>

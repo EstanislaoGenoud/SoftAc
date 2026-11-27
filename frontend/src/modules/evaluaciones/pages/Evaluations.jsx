@@ -1,16 +1,15 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { coursesData } from "@/modules/cursos";
 import { studentsData } from "@/modules/alumnos";
-import { ArrowLeftIcon, PlusIcon } from "@/shared/components/Icon";
+import { PlusIcon } from "@/shared/components/Icon";
 import { calculateStudentAverage, createEvaluacionMock, getCalificacionesByEvaluacion, getEvaluacionesByCurso, getGradingConfigMock, getRecoveryConfigMock, MOCK_EVALUATION_TYPES, MOCK_GRADING_CATEGORIES, numericToQualitative, RECOVERY_MODES, saveCalificacionesMock, saveGradingConfigMock, saveRecoveryConfigMock } from "../services/evaluacionMockService";
 import "../styles/Evaluations.css";
 
 const initialForm = { nombre: "", fecha: "", tipo: "", evaluacionOriginalId: "", ponderacion: "0", descripcion: "" };
 
 function Evaluations() {
-  const { id, courseId } = useParams();
-  const navigate = useNavigate();
+  const { courseId } = useParams();
   const course = coursesData.find((item) => String(item.id) === String(courseId));
   const courseStudents = studentsData.filter((student) => String(student.courseId) === String(courseId));
   const [evaluations, setEvaluations] = useState([]);
@@ -178,9 +177,6 @@ function Evaluations() {
   return (
     <main className="evaluations-page">
       <section className="evaluations-card">
-        <button type="button" className="evaluations-back" onClick={() => navigate(`/escuelas/${id}/cursos/${courseId}`)}>
-          <ArrowLeftIcon /> Volver al curso
-        </button>
         <header className="evaluations-header">
           <span className="evaluations-kicker">Evaluaciones</span>
           <h1>{course?.name || "Curso"}</h1>

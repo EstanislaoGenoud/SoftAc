@@ -1,14 +1,22 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { getSchoolById } from "@/modules/escuelas";
 import { getCoursesBySchool, getCourseById } from "../services/courseService";
 import CourseCard from "../components/CourseCard";
-import { CourseIcon, PlusIcon, ArrowLeftIcon } from "@/shared/components/Icon";
+import { CourseIcon, PlusIcon } from "@/shared/components/Icon";
 import "@/modules/escuelas/styles/Schools.css";
 
 function Courses() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const courseModule = location.state?.courseModule;
+  const moduleLabels = {
+    alumnos: "consultar alumnos",
+    asistencia: "registrar asistencia",
+    evaluaciones: "gestionar calificaciones",
+  };
+  const moduleAction = moduleLabels[courseModule];
   
   const [school, setSchool] = useState(null);
   const [courses, setCourses] = useState([]);
@@ -50,14 +58,12 @@ function Courses() {
   return (
     <main className="schools-page">
       <header className="schools-header">
-        <button className="logout-button" onClick={() => navigate(`/escuelas/${id}`)}>
-          <ArrowLeftIcon /> Volver al Panel
-        </button>
-
         <p className="greeting">{school.nombre || school.name}</p>
-        <h1>Cursos y Materias</h1>
+        <h1>{moduleAction ? "Seleccioná un curso" : "Cursos y Materias"}</h1>
         <p className="description">
-          Gestioná los cursos de esta institución.
+          {moduleAction
+            ? `Elegí un curso para ${moduleAction}.`
+            : "Gestioná los cursos de esta institución."}
         </p>
         
         <button
@@ -83,6 +89,7 @@ function Courses() {
             <CourseCard
               key={course.id}
               course={course}
+              destination={courseModule}
             />
           ))
         )}

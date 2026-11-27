@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { PlusIcon, EditIcon, TrashIcon } from "@/shared/components/Icon";
+import { EditIcon, TrashIcon } from "@/shared/components/Icon";
 import "../styles/SchoolCard.css";
 
 function SchoolCard({ school, onDeleteSchool }) {
@@ -21,7 +21,7 @@ function SchoolCard({ school, onDeleteSchool }) {
             </p>
 
             <button onClick={() => navigate(`/escuelas/${school.id}`)}>
-                <PlusIcon /> Ingresar
+                Ingresar
             </button>
 
             <div className="school-card-actions">
