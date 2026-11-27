@@ -17,7 +17,7 @@ import { Tenant } from './system/users/entities/tenant.entity.js';
 
 @Module({
   imports: [
-    //  ConfigModule carga automáticamente el archivo .env para proteger tus contraseñas
+    //  ConfigModule carga automáticamente el archivo .env para proteger contraseñas
     ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRoot({
       type: 'mysql',
