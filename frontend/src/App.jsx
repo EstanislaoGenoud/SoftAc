@@ -35,6 +35,12 @@ import {
   Evaluations
 } from "@/modules/evaluaciones";
 
+import {
+  Tasks,
+  TaskDeliveries
+} from "@/modules/tareas";
+import AppNavbar from "@/shared/components/AppNavbar";
+
 
 function App() {
 
@@ -77,9 +83,19 @@ function App() {
 
         <Route path="/login" element={<Login />} />
 
-        <Route path="/recuperar-contrasena" element={<ForgotPassword />} />
+        <Route path="/recuperar-contrasena" element={
+          <>
+            <AppNavbar showAccountMenu={false} />
+            <ForgotPassword />
+          </>
+        } />
 
-        <Route path="/restablecer-contrasena" element={<ResetPassword />} />
+        <Route path="/restablecer-contrasena" element={
+          <>
+            <AppNavbar showAccountMenu={false} />
+            <ResetPassword />
+          </>
+        } />
 
 
         {/* RUTAS PROTEGIDAS */}
@@ -147,6 +163,18 @@ function App() {
         <Route path="/escuelas/:id/cursos/:courseId/evaluaciones" element={
           <ProtectedRoute>
             <Evaluations />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/escuelas/:id/cursos/:courseId/tareas" element={
+          <ProtectedRoute>
+            <Tasks />
+          </ProtectedRoute>
+        } />
+
+              <Route path="/escuelas/:id/cursos/:courseId/tareas/:taskId" element={
+          <ProtectedRoute>
+            <TaskDeliveries />
           </ProtectedRoute>
         } />
 

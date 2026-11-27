@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { coursesData } from "@/modules/cursos";
 import { getCourseById } from "@/modules/cursos/services/courseService";
 import { studentsData } from "@/modules/alumnos";
 import { getStudentsByCourse } from "@/modules/alumnos/services/studentService";
-import { ArrowLeftIcon, CheckIcon, CrossIcon } from "@/shared/components/Icon";
+import { CheckIcon, CrossIcon } from "@/shared/components/Icon";
 import CreateClassModal from "../components/CreateClassModal";
 import { getClasesByCursoMateria, saveObservacionClase } from "../services/clasesService";
 import {
@@ -48,8 +48,7 @@ function normalizeStudent(student) {
 }
 
 function Attendance() {
-  const { id, courseId } = useParams();
-  const navigate = useNavigate();
+  const { courseId } = useParams();
 
   const [course, setCourse] = useState(() => 
     coursesData.find((item) => String(item.id) === String(courseId)) || null
@@ -259,13 +258,6 @@ function Attendance() {
     <main className="attendance-page">
       <section className="attendance-card">
         <header className="attendance-header">
-          <button
-            type="button"
-            className="attendance-back-button"
-            onClick={() => navigate(`/escuelas/${id}/cursos/${courseId}`)}
-          >
-            <ArrowLeftIcon /> Volver al curso
-          </button>
           <span className="attendance-kicker">Asistencia</span>
           <h1>{course?.nombre || course?.name || "Curso"}</h1>
           <h2>Registro de asistencia</h2>

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/ResetPassword.css";
-import { ArrowLeftIcon, SaveIcon } from "@/shared/components/Icon";
+import { SaveIcon } from "@/shared/components/Icon";
 
 function ResetPassword() {
 
@@ -82,14 +82,6 @@ function ResetPassword() {
                         {message}
                     </p>
                 )}
-
-                <button
-                    type="button"
-                    className="back-login-button"
-                    onClick={() => navigate("/login")}
-                >
-                    <ArrowLeftIcon /> Volver al Login
-                </button>
 
             </section>
 
