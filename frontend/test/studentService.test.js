@@ -37,7 +37,7 @@ test("HU-06 / Formulario de inscripción: enrollStudent envía payload correctam
         inscripcion: {
           id: "uuid-inscripcion",
           alumno_id: "uuid-alumno-creado",
-          curso_materia_id: capturedBody.cursoMateriaId,
+          curso_materia_id: "uuid-curso-materia",
           estado: "REGULAR"
         }
       })
@@ -56,7 +56,9 @@ test("HU-06 / Formulario de inscripción: enrollStudent envía payload correctam
     assert.equal(capturedBody.nombre, "Martina");
     assert.equal(capturedBody.apellido, "López");
     assert.equal(capturedBody.identificacion, "44123987");
-    assert.equal(capturedBody.cursoMateriaId, "curso-materia-test-1");
+    // El backend resuelve la materia a partir del curso: no se adivina en el frontend.
+    assert.equal(capturedBody.cursoId, "curso-materia-test-1");
+    assert.equal(capturedBody.cursoMateriaId, undefined);
 
     assert.ok(res.alumno);
     assert.equal(res.alumno.nombre, "Martina");
@@ -86,6 +88,41 @@ test("HU-06 / Formulario de inscripción: enrollStudent maneja errores de servid
         name: "Error",
         message: "El alumno ya se encuentra inscripto en este curso"
       }
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("HU-06 / Inscripción: si se indica la materia del curso, se envía cursoMateriaId", async () => {
+  const originalFetch = globalThis.fetch;
+  let capturedBody = null;
+  globalThis.fetch = async (url, options) => {
+    capturedBody = JSON.parse(options.body);
+    return { ok: true, json: async () => ({ alumno: { id: "a1" }, inscripcion: {}, alumno_existente: true }) };
+  };
+
+  try {
+    const res = await enrollStudent({ nombre: "Ana", apellido: "Paz", cursoId: "c1", cursoMateriaId: "cm1" });
+    assert.equal(capturedBody.cursoMateriaId, "cm1");
+    assert.equal(capturedBody.cursoId, undefined);
+    assert.equal(res.alumno_existente, true);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("HU-06 / Inscripción: une los mensajes de validación del backend", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => ({
+    ok: false,
+    json: async () => ({ message: ["El curso no existe o no tiene una materia asociada."] })
+  });
+
+  try {
+    await assert.rejects(
+      enrollStudent({ nombre: "Ana", apellido: "Paz", cursoId: "c1" }),
+      /no tiene una materia asociada/
     );
   } finally {
     globalThis.fetch = originalFetch;

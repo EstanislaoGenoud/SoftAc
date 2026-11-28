@@ -58,37 +58,19 @@ export async function getStudentHistory(alumnoId) {
 /**
  * HU-06 / Inscripción de alumnos:
  * Endpoint backend: POST /alumnos/inscribir
- * Body: { nombre, apellido, identificacion, cursoMateriaId }
+ * Body: { nombre, apellido, identificacion?, cursoId | cursoMateriaId, materiaId?, alumnoId? }
+ * El backend resuelve la materia del curso. Si ya existe un alumno con ese DNI,
+ * lo reutiliza y lo inscribe en el curso (devuelve alumno_existente: true).
  */
 export async function enrollStudent(data) {
-    let targetCursoMateriaId = data.cursoMateriaId;
-
-    if (!targetCursoMateriaId && data.cursoId) {
-        try {
-            const responseClases = await fetch(`${API_URL}/clases/curso/${data.cursoId}`, {
-                method: 'GET',
-                headers: getAuthHeaders()
-            });
-            if (responseClases.ok) {
-                const clases = await responseClases.json();
-                if (Array.isArray(clases) && clases.length > 0 && clases[0].curso_materia_id) {
-                    targetCursoMateriaId = clases[0].curso_materia_id;
-                }
-            }
-        } catch {
-            // Continuar con fallback
-        }
-
-        if (!targetCursoMateriaId) {
-            targetCursoMateriaId = data.cursoId;
-        }
-    }
-
     const payload = {
         nombre: (data.nombre || '').trim(),
         apellido: (data.apellido || '').trim(),
         identificacion: data.identificacion ? String(data.identificacion).trim() : undefined,
-        cursoMateriaId: targetCursoMateriaId
+        cursoId: data.cursoMateriaId ? undefined : data.cursoId,
+        cursoMateriaId: data.cursoMateriaId || undefined,
+        materiaId: data.materiaId || undefined,
+        alumnoId: data.alumnoId || undefined
     };
 
     const response = await fetch(`${API_URL}/alumnos/inscribir`, {
@@ -99,7 +81,8 @@ export async function enrollStudent(data) {
 
     if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Error al inscribir alumno en el curso');
+        const message = Array.isArray(errorData.message) ? errorData.message.join(' ') : errorData.message;
+        throw new Error(message || 'Error al inscribir alumno en el curso');
     }
 
     return await response.json();

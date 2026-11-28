@@ -60,9 +60,11 @@ function Students() {
         setPage(1);
     }
 
-    function handleStudentEnrolled(newStudent) {
-        setStudents((prev) => [newStudent, ...prev]);
-        setEnrollFeedback(`Alumno ${newStudent.nombre} ${newStudent.apellido} inscripto exitosamente.`);
+    function handleStudentEnrolled(newStudent, { alumnoExistente = false } = {}) {
+        setStudents((prev) => [newStudent, ...prev.filter((student) => student.id !== newStudent.id)]);
+        setEnrollFeedback(alumnoExistente
+            ? `${newStudent.nombre} ${newStudent.apellido} ya estaba registrado (mismo DNI) y quedó inscripto en este curso.`
+            : `Alumno ${newStudent.nombre} ${newStudent.apellido} inscripto exitosamente.`);
         setTimeout(() => setEnrollFeedback(""), 4500);
     }
 

@@ -52,7 +52,7 @@ function CreateStudentModal({ isOpen, onClose, cursoId, cursoNombre, onStudentEn
       setIdentificacion("");
 
       if (onStudentEnrolled) {
-        onStudentEnrolled(newStudent);
+        onStudentEnrolled(newStudent, { alumnoExistente: Boolean(res.alumno_existente) });
       }
       onClose();
     } catch (err) {
