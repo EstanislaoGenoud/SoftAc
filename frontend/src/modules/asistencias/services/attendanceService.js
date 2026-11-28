@@ -137,14 +137,32 @@ export async function saveAttendance(claseId, records) {
     observacion: record.observacion || undefined
   }));
 
+  let response;
   try {
-    const response = await fetch(`${API_URL}/asistencias/clase/${claseId}`, {
+    response = await fetch(`${API_URL}/asistencias/clase/${claseId}`, {
       method: "POST",
       headers: getAuthHeaders(),
       body: JSON.stringify({ registros: payload })
     });
+  } catch (error) {
+    // Sin conexión con el servidor: queda en caché local para reintentar.
+    console.warn("Aviso API Asistencias (guardado en caché local):", error.message);
+    return { records, synced: false };
+  }
 
-    if (!response.ok) throw new Error("No se pudo guardar la asistencia en el servidor");
+  if (!response.ok) {
+    // El servidor respondió con un error (validación, alumno no inscripto, etc.):
+    // no es un problema de conexión, así que se informa en lugar de simular éxito.
+    const errorData = await response.json().catch(() => ({}));
+    const message = Array.isArray(errorData.message) ? errorData.message.join(" ") : errorData.message;
+    return {
+      records,
+      synced: false,
+      error: message || "El servidor no pudo guardar la asistencia."
+    };
+  }
+
+  try {
     const savedData = await response.json().catch(() => ({}));
     try {
       localStorage.setItem(syncedKey(claseId), "true");

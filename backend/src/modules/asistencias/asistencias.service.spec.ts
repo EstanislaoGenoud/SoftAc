@@ -115,7 +115,8 @@ describe('AsistenciasService', () => {
     });
 
     it('#167, #168, #170: Debería guardar masivamente evitando registros duplicados', async () => {
-      mockClaseRepo.findOne.mockResolvedValue({ id: 'clase-1', estado: 'DICTADA' });
+      mockClaseRepo.findOne.mockResolvedValue({ id: 'clase-1', estado: 'DICTADA', curso_materia_id: 'cm-1' });
+      mockInscripcionRepo.find.mockResolvedValue([{ alumno_id: 'alumno-1' }, { alumno_id: 'alumno-2' }]);
       // Simulamos que alumno-1 ya tenía asistencia registrada previamente
       mockAsistenciaRepo.find.mockResolvedValue([
         {
@@ -142,6 +143,22 @@ describe('AsistenciasService', () => {
       expect(resultado[1].alumno_id).toBe('alumno-2');
       expect(resultado[1].estado).toBe(EstadoAsistencia.MEDIA_FALTA);
       expect(mockAsistenciaRepo.save).toHaveBeenCalled();
+      expect(mockInscripcionRepo.find).toHaveBeenCalledWith({
+        where: expect.objectContaining({ curso_materia_id: 'cm-1', estado: 'REGULAR' })
+      });
+    });
+
+    it('rechaza con 400 (no 500) alumnos que no están inscriptos en la materia de la clase', async () => {
+      mockClaseRepo.findOne.mockResolvedValue({ id: 'clase-1', estado: 'DICTADA', curso_materia_id: 'cm-1' });
+      mockInscripcionRepo.find.mockResolvedValue([{ alumno_id: 'alumno-real' }]);
+
+      await expect(
+        service.registrarMasiva('clase-1', [
+          { alumnoId: 'alumno-real', estado: EstadoAsistencia.PRESENTE },
+          { alumnoId: '1', estado: EstadoAsistencia.PRESENTE }
+        ])
+      ).rejects.toThrow(/no están inscriptos en este curso: 1\./);
+      expect(mockAsistenciaRepo.save).not.toHaveBeenCalled();
     });
   });
 

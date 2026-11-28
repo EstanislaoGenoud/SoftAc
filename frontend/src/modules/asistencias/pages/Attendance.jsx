@@ -18,6 +18,7 @@ import {
 import "../styles/Attendance.css";
 
 const DEFAULT_RISK_LIMIT = 75;
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function formatDate(date) {
   if (!date) return "-";
@@ -96,19 +97,32 @@ function Attendance() {
       setStudentsLoading(true);
       setStudentsError("");
 
+      // Un curso real (id UUID) solo muestra alumnos reales: si se mezclaran los
+      // alumnos de prueba, su asistencia se enviaría al servidor y fallaría.
+      const isRealCourse = UUID_PATTERN.test(String(courseId));
+
       try {
         const data = await getStudentsByCourse(courseId);
         if (!isMounted) return;
 
         const apiStudents = Array.isArray(data) ? data.map(normalizeStudent) : [];
-        if (apiStudents.length > 0) {
+        if (apiStudents.length > 0 || isRealCourse) {
           setCourseStudents(apiStudents);
+          if (apiStudents.length === 0) {
+            setStudentsError("No hay alumnos inscriptos en este curso. Inscribilos desde la sección Alumnos.");
+          }
           return;
         }
 
-        throw new Error("La API no devolvió alumnos para este curso.");
+        throw new Error("La API no devolvió alumnos para este curso de prueba.");
       } catch {
         if (!isMounted) return;
+
+        if (isRealCourse) {
+          setCourseStudents([]);
+          setStudentsError("No se pudieron cargar los alumnos del curso. Verificá que el servidor esté funcionando.");
+          return;
+        }
 
         const localStudents = studentsData.filter(
           (student) => String(student.courseId) === String(courseId) || student.courseId === Number(courseId)
@@ -218,7 +232,9 @@ function Attendance() {
     setIsSaving(false);
     setSaveMessage(result.synced
       ? "Asistencia guardada correctamente en el servidor."
-      : "Asistencia guardada localmente (modo offline).");
+      : result.error
+        ? `No se pudo guardar la asistencia: ${result.error}`
+        : "Asistencia guardada localmente (modo offline).");
   }
 
   function handleClassCreated(newClass) {

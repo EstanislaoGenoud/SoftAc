@@ -135,6 +135,21 @@ export class AsistenciasService {
     const registrosUnicos = Array.from(registrosUnicosMap.values());
     const alumnoIds = registrosUnicos.map(r => r.alumnoId);
 
+    // Solo se puede tomar asistencia a alumnos inscriptos (REGULAR) en la materia de la clase.
+    // Sin esta validación, un id inexistente (p. ej. un alumno de prueba del frontend)
+    // llegaba a la base y rompía la clave foránea con un error 500.
+    const inscripciones = await this.inscripcionRepo.find({
+      where: { curso_materia_id: clase.curso_materia_id, estado: 'REGULAR', alumno_id: In(alumnoIds) }
+    });
+    const inscriptos = new Set(inscripciones.map(i => i.alumno_id));
+    const noInscriptos = alumnoIds.filter(id => !inscriptos.has(id));
+    if (noInscriptos.length > 0) {
+      throw new BadRequestException(
+        `Hay ${noInscriptos.length} alumno(s) que no están inscriptos en este curso: ${noInscriptos.join(', ')}. ` +
+        'Recargá la lista de alumnos e intentá de nuevo.'
+      );
+    }
+
     // #167: Buscar registros ya existentes en la base de datos para esta clase y estos alumnos
     const asistenciasExistentes = await this.asistenciaRepo.find({
       where: {
