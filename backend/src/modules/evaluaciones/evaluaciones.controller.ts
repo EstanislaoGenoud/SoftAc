@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
@@ -85,6 +86,11 @@ export class EvaluacionesController {
     return this.evaluacionesService.updateCalificacion(id, alumnoId, dto);
   }
 
+  @Delete(':id/calificaciones/:alumnoId')
+  removeCalificacion(@Param('id') id: string, @Param('alumnoId') alumnoId: string) {
+    return this.evaluacionesService.removeCalificacion(id, alumnoId);
+  }
+
   @Post(':id/recuperatorios')
   createRecovery(@Param('id') id: string, @Body() dto: CrearRecuperatorioDto) {
     return this.evaluacionesService.createRecovery(id, dto);
@@ -93,6 +99,11 @@ export class EvaluacionesController {
   @Patch(':id')
   update(@Param('id') id: string, @Body() dto: ActualizarEvaluacionDto) {
     return this.evaluacionesService.update(id, dto);
+  }
+
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.evaluacionesService.remove(id);
   }
 
   @Get(':id')

@@ -178,8 +178,42 @@ export class EvaluacionesService {
       if (evaluation.fecha < original.fecha) {
         throw new BadRequestException('La fecha del recuperatorio no puede ser anterior a la evaluación original.');
       }
+    } else if (dto.fecha !== undefined) {
+      const recoveries = await this.findRecoveries(evaluation.id);
+      if (recoveries.some((recovery) => recovery.fecha < evaluation.fecha)) {
+        throw new BadRequestException(
+          'La evaluación original no puede quedar con fecha posterior a la de sus recuperatorios.',
+        );
+      }
     }
     return this.evaluacionRepo.save(evaluation);
+  }
+
+  /**
+   * Elimina una evaluación y sus calificaciones. Si es una evaluación original,
+   * también elimina sus recuperatorios (no pueden existir sin la original).
+   * Todo ocurre en una transacción para no dejar datos a medio borrar.
+   */
+  async remove(id: string) {
+    const evaluation = await this.findOne(id);
+    const recoveryIds = evaluation.tipo === TipoEvaluacion.RECUPERATORIO
+      ? []
+      : (await this.findRecoveries(evaluation.id)).map((recovery) => recovery.id);
+    const evaluationIds = [evaluation.id, ...recoveryIds];
+
+    const calificacionesEliminadas = await this.dataSource.transaction(async (manager) => {
+      const gradeResult = await manager.delete(Calificacion, { evaluacion_id: In(evaluationIds) });
+      if (recoveryIds.length) await manager.delete(Evaluacion, { id: In(recoveryIds) });
+      await manager.delete(Evaluacion, { id: evaluation.id });
+      return gradeResult.affected ?? 0;
+    });
+
+    return {
+      id: evaluation.id,
+      curso_id: evaluation.curso_id,
+      recuperatorios_eliminados: recoveryIds,
+      calificaciones_eliminadas: calificacionesEliminadas,
+    };
   }
 
   async getConfiguracion(cursoId: string) {
@@ -257,6 +291,17 @@ export class EvaluacionesService {
       return grade;
     });
     return this.calificacionRepo.save(saved);
+  }
+
+  /** Deja al alumno sin calificar en esa evaluación. */
+  async removeCalificacion(evaluacionId: string, alumnoId: string) {
+    await this.findOne(evaluacionId);
+    const grade = await this.calificacionRepo.findOne({
+      where: { evaluacion_id: evaluacionId, alumno_id: alumnoId },
+    });
+    if (!grade) throw new NotFoundException('El alumno no tiene calificación en esta evaluación.');
+    await this.calificacionRepo.delete({ id: grade.id });
+    return { evaluacion_id: evaluacionId, alumno_id: alumnoId };
   }
 
   async updateCalificacion(evaluacionId: string, alumnoId: string, item: Omit<CalificacionItemDto, 'alumnoId'>) {
@@ -423,6 +468,12 @@ export class EvaluacionesService {
     const course = await this.cursoRepo.findOne({ where: { id: cursoId } });
     if (!course) throw new NotFoundException('Curso no encontrado.');
     return course;
+  }
+
+  private findRecoveries(originalId: string) {
+    return this.evaluacionRepo.find({
+      where: { evaluacion_original_id: originalId, tipo: TipoEvaluacion.RECUPERATORIO },
+    });
   }
 
   private async getOriginalWeightTotal(cursoId: string, excludeId?: string) {

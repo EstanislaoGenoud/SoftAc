@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { BadRequestException } from '@nestjs/common';
+import { In } from 'typeorm';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Curso } from '../cursos/entities/curso.entity.js';
 import { Alumno } from '../alumnos/entities/alumno.entity.js';
 import { Inscripcion } from '../alumnos/entities/inscripcion.entity.js';
@@ -27,7 +28,9 @@ describe('EvaluacionesService', () => {
     findOne: vi.fn(),
     create: vi.fn((data) => ({ ...data })),
     save: vi.fn((data) => data),
+    delete: vi.fn(),
   };
+  const transactionManager = { delete: vi.fn() };
   const configRepo = { findOne: vi.fn(), create: vi.fn((data) => ({ ...data })), save: vi.fn((data) => data) };
   const courseRepo = { findOne: vi.fn() };
   const studentRepo = { find: vi.fn(), findOne: vi.fn() };
@@ -43,6 +46,7 @@ describe('EvaluacionesService', () => {
       if (entity === Inscripcion) return enrollmentRepo;
       return {};
     }),
+    transaction: vi.fn((work) => work(transactionManager)),
   };
 
   beforeEach(() => {
@@ -50,6 +54,9 @@ describe('EvaluacionesService', () => {
     evaluationRepo.find.mockResolvedValue([]);
     evaluationRepo.findOne.mockResolvedValue(null);
     gradeRepo.find.mockResolvedValue([]);
+    gradeRepo.findOne.mockResolvedValue(null);
+    gradeRepo.delete.mockResolvedValue({ affected: 1 });
+    transactionManager.delete.mockResolvedValue({ affected: 0 });
     configRepo.findOne.mockResolvedValue(null);
     courseRepo.findOne.mockResolvedValue({ id: 'course-1' });
     enrollmentRepo.find.mockResolvedValue([{ alumno_id: 'student-1' }]);
@@ -249,5 +256,103 @@ describe('EvaluacionesService', () => {
     expect(result.promedio_curso).toBeNull();
     expect(result.alumnos[0].promedio).toBeNull();
     expect(result.alumnos[0].promedio_parcial).toBeNull();
+  });
+
+  describe('eliminación y corrección', () => {
+    const original = {
+      id: 'original',
+      curso_id: 'course-1',
+      nombre: 'Examen',
+      tipo: TipoEvaluacion.EXAMEN,
+      fecha: '2026-04-01',
+      ponderacion: 40,
+      evaluacion_original_id: null,
+    };
+    const recovery = {
+      id: 'recovery',
+      curso_id: 'course-1',
+      nombre: 'Recuperatorio',
+      tipo: TipoEvaluacion.RECUPERATORIO,
+      fecha: '2026-04-15',
+      ponderacion: 0,
+      evaluacion_original_id: 'original',
+    };
+
+    const findWhere = (rows: any[]) => ({ where }: any) =>
+      rows.filter((row) => Object.entries(where).every(([key, value]) => row[key] === value));
+
+    beforeEach(() => {
+      evaluationRepo.findOne.mockImplementation(({ where }) => {
+        if (where.id === 'original') return { ...original };
+        if (where.id === 'recovery') return { ...recovery };
+        return null;
+      });
+    });
+
+    it('elimina una evaluación original junto con sus recuperatorios y notas', async () => {
+      evaluationRepo.find.mockImplementation(findWhere([original, recovery]));
+      transactionManager.delete.mockImplementation((entity) =>
+        ({ affected: entity === Calificacion ? 5 : 1 }));
+
+      const result = await service.remove('original');
+
+      expect(dataSource.transaction).toHaveBeenCalledTimes(1);
+      expect(transactionManager.delete).toHaveBeenNthCalledWith(1, Calificacion, {
+        evaluacion_id: In(['original', 'recovery']),
+      });
+      expect(transactionManager.delete).toHaveBeenNthCalledWith(2, Evaluacion, {
+        id: In(['recovery']),
+      });
+      expect(transactionManager.delete).toHaveBeenNthCalledWith(3, Evaluacion, { id: 'original' });
+      expect(result).toEqual({
+        id: 'original',
+        curso_id: 'course-1',
+        recuperatorios_eliminados: ['recovery'],
+        calificaciones_eliminadas: 5,
+      });
+    });
+
+    it('elimina solo el recuperatorio y deja intacta la evaluación original', async () => {
+      const result = await service.remove('recovery');
+
+      expect(evaluationRepo.find).not.toHaveBeenCalled();
+      expect(transactionManager.delete).toHaveBeenCalledTimes(2);
+      expect(transactionManager.delete).toHaveBeenLastCalledWith(Evaluacion, { id: 'recovery' });
+      expect(result.recuperatorios_eliminados).toEqual([]);
+    });
+
+    it('responde 404 al eliminar una evaluación inexistente', async () => {
+      await expect(service.remove('no-existe')).rejects.toBeInstanceOf(NotFoundException);
+      expect(dataSource.transaction).not.toHaveBeenCalled();
+    });
+
+    it('quita la calificación de un alumno', async () => {
+      gradeRepo.findOne.mockResolvedValue({ id: 'grade-1', evaluacion_id: 'original', alumno_id: 'student-1' });
+
+      const result = await service.removeCalificacion('original', 'student-1');
+
+      expect(gradeRepo.delete).toHaveBeenCalledWith({ id: 'grade-1' });
+      expect(result).toEqual({ evaluacion_id: 'original', alumno_id: 'student-1' });
+    });
+
+    it('responde 404 si el alumno no tiene nota en la evaluación', async () => {
+      await expect(service.removeCalificacion('original', 'student-1')).rejects.toBeInstanceOf(NotFoundException);
+      expect(gradeRepo.delete).not.toHaveBeenCalled();
+    });
+
+    it('corrige ponderación y fecha de una evaluación existente', async () => {
+      evaluationRepo.find.mockImplementation(findWhere([original, recovery]));
+
+      const result = await service.update('original', { ponderacion: 60, fecha: '2026-04-05' });
+
+      expect(result).toMatchObject({ id: 'original', ponderacion: 60, fecha: '2026-04-05' });
+    });
+
+    it('no permite mover la original a una fecha posterior a su recuperatorio', async () => {
+      evaluationRepo.find.mockImplementation(findWhere([original, recovery]));
+
+      await expect(service.update('original', { fecha: '2026-04-20' })).rejects.toBeInstanceOf(BadRequestException);
+      expect(evaluationRepo.save).not.toHaveBeenCalled();
+    });
   });
 });

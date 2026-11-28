@@ -97,7 +97,7 @@ CREATE TABLE evaluaciones (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (curso_id) REFERENCES cursos(id) ON DELETE CASCADE,
-    FOREIGN KEY (evaluacion_original_id) REFERENCES evaluaciones(id) ON DELETE SET NULL,
+    FOREIGN KEY (evaluacion_original_id) REFERENCES evaluaciones(id) ON DELETE CASCADE,
     INDEX idx_evaluaciones_curso_fecha (curso_id, fecha)
 );
 CREATE TABLE calificaciones (
