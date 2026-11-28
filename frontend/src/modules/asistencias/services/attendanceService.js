@@ -94,6 +94,25 @@ export function summarizeAttendance(records = []) {
   };
 }
 
+/**
+ * Arma los registros de una clase SOLO para los alumnos de la lista actual.
+ * Los registros guardados de alumnos que ya no están (p. ej. alumnos de prueba
+ * que quedaron en la caché local de intentos anteriores) se descartan, y los
+ * alumnos sin registro quedan como PRESENTE, que es lo que muestra la pantalla.
+ */
+export function buildClassRecords(students = [], storedRecords = {}) {
+  return students.reduce((result, student) => {
+    const id = String(student.id);
+    const stored = storedRecords[id] || storedRecords[student.id];
+    result[id] = {
+      alumnoId: id,
+      estado: stored?.estado || ATTENDANCE_STATES.PRESENTE,
+      observacion: stored?.observacion || ""
+    };
+    return result;
+  }, {});
+}
+
 export async function getAttendance(claseId) {
   const localRecords = readLocalAttendance(claseId);
 

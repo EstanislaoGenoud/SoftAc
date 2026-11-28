@@ -22,7 +22,8 @@ import {
   summarizeAttendance,
   getStudentRecords,
   saveAttendance,
-  getAttendance
+  getAttendance,
+  buildClassRecords
 } from "../src/modules/asistencias/services/attendanceService.js";
 
 const record = (estado) => ({ estado });
@@ -135,4 +136,45 @@ test("HU-14: saveAttendance permite modificar el estado de asistencia de un alum
 
   assert.equal(guardado["alumno-10"].estado, ATTENDANCE_STATES.AUSENTE_CON_CERTIFICADO);
   assert.equal(guardado["alumno-10"].observacion, "Presentó certificado médico en secretaría");
+});
+
+test("buildClassRecords descarta registros de alumnos que no están en la lista (caché vieja)", () => {
+  const students = [{ id: "uuid-a" }, { id: "uuid-b" }];
+  const stored = {
+    "1": { alumnoId: "1", estado: ATTENDANCE_STATES.PRESENTE },
+    "2": { alumnoId: "2", estado: ATTENDANCE_STATES.AUSENTE },
+    "uuid-a": { alumnoId: "uuid-a", estado: ATTENDANCE_STATES.AUSENTE, observacion: "llegó tarde" }
+  };
+
+  const records = buildClassRecords(students, stored);
+
+  assert.deepEqual(Object.keys(records), ["uuid-a", "uuid-b"]);
+  assert.deepEqual(records["uuid-a"], { alumnoId: "uuid-a", estado: ATTENDANCE_STATES.AUSENTE, observacion: "llegó tarde" });
+  // Alumno sin registro: PRESENTE por defecto, igual que lo que muestra la pantalla.
+  assert.deepEqual(records["uuid-b"], { alumnoId: "uuid-b", estado: ATTENDANCE_STATES.PRESENTE, observacion: "" });
+});
+
+test("buildClassRecords sin alumnos no devuelve registros", () => {
+  assert.deepEqual(buildClassRecords([], { "1": { estado: ATTENDANCE_STATES.PRESENTE } }), {});
+});
+
+test("saveAttendance con buildClassRecords envía solo los alumnos visibles", async () => {
+  const claseId = "clase-cache-vieja";
+  localStorage.setItem(`softac_asistencia_${claseId}`, JSON.stringify({ "7": { alumnoId: "7", estado: "PRESENTE" } }));
+  const originalFetch = globalThis.fetch;
+  let sentBody = null;
+  globalThis.fetch = async (url, options) => {
+    sentBody = JSON.parse(options.body);
+    return { ok: true, json: async () => ({}) };
+  };
+
+  try {
+    const stored = JSON.parse(localStorage.getItem(`softac_asistencia_${claseId}`));
+    await saveAttendance(claseId, buildClassRecords([{ id: "uuid-real" }], stored));
+    assert.deepEqual(sentBody.registros.map((r) => r.alumnoId), ["uuid-real"]);
+    // La caché local queda limpia de los alumnos de prueba.
+    assert.deepEqual(Object.keys(JSON.parse(localStorage.getItem(`softac_asistencia_${claseId}`))), ["uuid-real"]);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });

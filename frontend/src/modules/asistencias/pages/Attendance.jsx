@@ -13,6 +13,7 @@ import {
   getAttendance,
   isStudentAtRisk,
   saveAttendance,
+  buildClassRecords,
   summarizeAttendance
 } from "../services/attendanceService";
 import "../styles/Attendance.css";
@@ -143,7 +144,8 @@ function Attendance() {
   }, [courseId]);
 
   const selectedClass = classes.find((item) => String(item.id) === String(selectedClassId));
-  const currentRecords = attendanceByClass[selectedClassId] || {};
+  // Solo los alumnos visibles: así nunca se envían registros viejos de la caché local.
+  const currentRecords = buildClassRecords(courseStudents, attendanceByClass[selectedClassId] || {});
   const currentRecordList = Object.values(currentRecords);
   const currentSummary = summarizeAttendance(currentRecordList);
 
