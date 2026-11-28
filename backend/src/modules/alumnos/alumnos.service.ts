@@ -73,7 +73,7 @@ export class AlumnosService {
     materiaId?: string;
   }) {
     const cursoMateria = await this.resolveCursoMateria(data);
-    const identificacion = data.identificacion?.toString().trim() || null;
+    const identificacion = data.identificacion?.toString().trim() || undefined;
 
     let alumno: Alumno | null = null;
     if (data.alumnoId) {
